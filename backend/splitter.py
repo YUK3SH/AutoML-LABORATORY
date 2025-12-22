@@ -15,14 +15,22 @@ def split_data(
     X = df.drop(columns=[target])
     y = df[target]
 
+    use_stratify = None
+    if y.nunique() <= 10 and y.value_counts().min() >= 2:
+        use_stratify = y
+        log.info("Using stratified split")
+    else:
+        log.info("Stratified split disabled (insufficient samples)")
+
     X_train, X_test, y_train, y_test = train_test_split(
         X,
         y,
         test_size=test_size,
         random_state=random_state,
-        stratify=y if y.nunique() <= 10 else None
+        stratify=use_stratify
     )
 
     log.info(f"Train shape: {X_train.shape}, Test shape: {X_test.shape}")
 
     return X_train, X_test, y_train, y_test
+
