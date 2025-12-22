@@ -7,6 +7,7 @@ from .metrics import select_metrics
 from .baseline import train_baseline
 from .autogluon_runner import run_autogluon
 from .h2o_runner import run_h2o
+from .tpot_runner import run_tpot
 
 app = FastAPI()
 log = setup_logger("AUTOML")
@@ -114,6 +115,24 @@ def h2o_api():
         target="score",
         task=task,
         time_limit=60
+    )
+
+    return result
+
+@app.get("/tpot")
+def tpot_api():
+    df = load_dataset("datasets/sample.csv")
+    task = detect_task(df, target="score")
+
+    X_train, X_test, y_train, y_test = split_data(df, target="score")
+
+    result = run_tpot(
+        X_train=X_train,
+        X_test=X_test,
+        y_train=y_train,
+        y_test=y_test,
+        task=task,
+        time_limit=120
     )
 
     return result
