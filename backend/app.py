@@ -4,6 +4,8 @@ from .data_loader import load_dataset
 from .splitter import split_data
 from .task_detector import detect_task
 from .metrics import select_metrics
+from .baseline import train_baseline
+from .autogluon_runner import run_autogluon
 
 app = FastAPI()
 log = setup_logger("AUTOML")
@@ -42,3 +44,53 @@ def metrics_api():
         "task": task,
         "metrics": metrics
     }
+
+@app.get("/baseline")
+def baseline_api():
+    df = load_dataset("datasets/sample.csv")
+    task = detect_task(df, target="score")
+    X_train, X_test, y_train, y_test = split_data(df, target="score")
+    metric, score = train_baseline(
+        X_train, X_test, y_train, y_test, task
+    )
+    return {
+        "metric": metric,
+        "score": score
+    }
+
+@app.get("/autogluon")
+def autogluon_api():
+    df = load_dataset("datasets/sample.csv")
+    task = detect_task(df, target="score")
+
+    X_train, X_test, y_train, y_test = split_data(df, target="score")
+
+    train_df = X_train.copy()
+    train_df["score"] = y_train
+
+    test_df = X_test.copy()
+    test_df["score"] = y_test
+
+    leaderboard = run_autogluon(
+        train_df=train_df,
+        test_df=test_df,
+        target="score",
+        task=task,
+        time_limit=60
+    )
+
+    return {
+        "models_trained": len(leaderboard),
+        "leaderboard": leaderboard
+    }
+
+    result = run_autogluon(
+    train_df=train_df,
+    test_df=test_df,
+    target="score",
+    task=task,
+    time_limit=60
+    )
+
+    return result
+
