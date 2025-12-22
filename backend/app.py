@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from .logger import setup_logger
 from .data_loader import load_dataset
 from .splitter import split_data
+from .task_detector import detect_task
 
 app = FastAPI()
 log = setup_logger("AUTOML")
@@ -24,3 +25,9 @@ def split_sample():
         "train_rows": X_train.shape[0],
         "test_rows": X_test.shape[0]
     }
+
+@app.get("/detect_task")
+def detect_task_api():
+    df = load_dataset("datasets/sample.csv")
+    task = detect_task(df, target="score")
+    return {"task": task}
