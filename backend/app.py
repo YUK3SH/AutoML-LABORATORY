@@ -3,6 +3,7 @@ from .logger import setup_logger
 from .data_loader import load_dataset
 from .splitter import split_data
 from .task_detector import detect_task
+from .metrics import select_metrics
 
 app = FastAPI()
 log = setup_logger("AUTOML")
@@ -31,3 +32,13 @@ def detect_task_api():
     df = load_dataset("datasets/sample.csv")
     task = detect_task(df, target="score")
     return {"task": task}
+
+@app.get("/metrics")
+def metrics_api():
+    df = load_dataset("datasets/sample.csv")
+    task = detect_task(df, target="score")
+    metrics = select_metrics(task)
+    return {
+        "task": task,
+        "metrics": metrics
+    }
