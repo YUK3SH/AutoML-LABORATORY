@@ -9,6 +9,7 @@ from .autogluon_runner import run_autogluon
 from .h2o_runner import run_h2o
 from .tpot_runner import run_tpot
 from .flaml_runner import run_flaml
+from .orchestrator import run_automl
 
 app = FastAPI()
 log = setup_logger("AUTOML")
@@ -155,3 +156,8 @@ def flaml_api():
     )
 
     return result
+
+@app.get("/run_automl")
+def run_automl_api(engine: str = "all"):
+    df = load_dataset("datasets/sample.csv")
+    return run_automl(df, target="score", engine=engine)
