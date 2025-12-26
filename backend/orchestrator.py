@@ -4,6 +4,7 @@ from backend.task_detector import detect_task
 from backend.h2o_runner import run_h2o
 from backend.autogluon_runner import run_autogluon
 from backend.tpot_runner import run_tpot
+from backend.flaml_runner import run_flaml
 
 
 async def run_pipeline(filename, engine):
@@ -27,10 +28,16 @@ async def run_pipeline(filename, engine):
 
     if engine == "h2o":
         raw = run_h2o(train_df, test_df, target, task)
+
     elif engine == "autogluon":
         raw = run_autogluon(train_df, test_df, target, task)
+
     elif engine == "tpot":
         raw = run_tpot(X_train, X_test, y_train, y_test, task)
+
+    elif engine == "flaml":
+        raw = run_flaml(X_train, X_test, y_train, y_test, task)
+
     else:
         yield {"type": "error", "message": "Unknown engine"}
         return
@@ -42,10 +49,10 @@ async def run_pipeline(filename, engine):
     result = {
         "task": task,
         "engine": engine,
-        "metrics": raw["metrics"],
-        "confusion_matrix": raw["confusion_matrix"],
-        "top_models": raw["leaderboard"],
-        "leaderboard": raw["leaderboard"]
+        "metrics": raw.get("metrics", {}),
+        "confusion_matrix": raw.get("confusion_matrix"),
+        "top_models": raw.get("leaderboard", []),
+        "leaderboard": raw.get("leaderboard", [])
     }
 
     yield {"type": "result", "data": result}
