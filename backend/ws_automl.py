@@ -22,6 +22,10 @@ async def automl_ws(websocket: WebSocket, engine: str):
                 "type": "result",
                 "data": msg["data"]
             })
+            await websocket.send_json({"type": "done"})
+            await asyncio.sleep(0)
+            await websocket.close()
+            return
 
     await websocket.send_json({"type": "done"})
     await websocket.close()

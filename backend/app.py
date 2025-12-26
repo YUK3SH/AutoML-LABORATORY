@@ -62,15 +62,13 @@ def autogluon_api():
     test_df = X_test.copy()
     test_df[target] = y_test
 
-    result = run_autogluon(
+    return run_autogluon(
         train_df=train_df,
         test_df=test_df,
         target=target,
         task=task,
         time_limit=60
     )
-
-    return result
 
 
 @app.get("/h2o")
@@ -135,6 +133,11 @@ async def ws_autogluon(websocket: WebSocket):
 @app.websocket("/ws/tpot")
 async def ws_tpot(websocket: WebSocket):
     await automl_ws(websocket, engine="tpot")
+
+
+@app.websocket("/ws/flaml")
+async def ws_flaml(websocket: WebSocket):
+    await automl_ws(websocket, engine="flaml")
 
 
 @app.websocket("/ws/system_logs")
