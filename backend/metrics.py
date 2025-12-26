@@ -4,18 +4,5 @@ log = setup_logger("METRIC")
 
 def select_metrics(task: str):
     if task == "classification":
-        metrics = [
-            "accuracy",
-            "precision",
-            "recall",
-            "f1"
-        ]
-    else:
-        metrics = [
-            "rmse",
-            "mae",
-            "r2"
-        ]
-
-    log.info(f"Selected metrics: {metrics}")
-    return metrics
+        return ["accuracy", "precision_weighted", "recall_weighted", "f1_weighted"]
+    return ["rmse", "mae", "r2"]

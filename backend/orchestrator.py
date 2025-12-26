@@ -1,56 +1,51 @@
-from .logger import setup_logger
-from .task_detector import detect_task
-from .splitter import split_data
-from .baseline import train_baseline
-from .autogluon_runner import run_autogluon
-from .h2o_runner import run_h2o
-from .tpot_runner import run_tpot
+from backend.data_loader import load_dataset
+from backend.splitter import split_data
+from backend.task_detector import detect_task
+from backend.h2o_runner import run_h2o
+from backend.autogluon_runner import run_autogluon
+from backend.tpot_runner import run_tpot
 
-log = setup_logger("ORCH")
 
-def run_automl(df, target: str, engine: str = "all"):
-    log.info("Starting unified AutoML pipeline")
+async def run_pipeline(filename, engine):
+    yield {"type": "log", "message": f"ORCH | Loading dataset {filename}"}
+    df = load_dataset(f"datasets/{filename}")
 
-    task = detect_task(df, target)
-    log.info(f"Task detected: {task}")
+    task, target = detect_task(df)
+    yield {"type": "log", "message": f"ORCH | Task={task}, Target={target}"}
 
-    X_train, X_test, y_train, y_test = split_data(df, target)
-
-    # baseline
-    base_metric, base_score = train_baseline(
-        X_train, X_test, y_train, y_test, task
-    )
-
-    result = {
-        "task": task,
-        "baseline": {
-            "metric": base_metric,
-            "score": base_score
-        }
+    X_train, X_test, y_train, y_test = split_data(df, target, task)
+    yield {
+        "type": "log",
+        "message": f"ORCH | Split done | Train={X_train.shape}, Test={X_test.shape}"
     }
 
-    # prepare frames (NO leakage)
     train_df = X_train.copy()
     train_df[target] = y_train
 
     test_df = X_test.copy()
     test_df[target] = y_test
 
-    if engine in ("all", "autogluon"):
-        result["autogluon"] = run_autogluon(
-            train_df, test_df, target, task, time_limit=60
-        )
+    if engine == "h2o":
+        raw = run_h2o(train_df, test_df, target, task)
+    elif engine == "autogluon":
+        raw = run_autogluon(train_df, test_df, target, task)
+    elif engine == "tpot":
+        raw = run_tpot(X_train, X_test, y_train, y_test, task)
+    else:
+        yield {"type": "error", "message": "Unknown engine"}
+        return
 
-    if engine in ("all", "h2o"):
-        result["h2o"] = run_h2o(
-            train_df, test_df, target, task, time_limit=60
-        )
+    if raw.get("skipped"):
+        yield {"type": "error", "message": raw["reason"]}
+        return
 
-    if engine in ("all", "tpot"):
-        result["tpot"] = run_tpot(
-            X_train, X_test, y_train, y_test, task, time_limit=120
-        )
+    result = {
+        "task": task,
+        "engine": engine,
+        "metrics": raw["metrics"],
+        "confusion_matrix": raw["confusion_matrix"],
+        "top_models": raw["leaderboard"],
+        "leaderboard": raw["leaderboard"]
+    }
 
-    log.info("AutoML pipeline finished")
-
-    return result
+    yield {"type": "result", "data": result}

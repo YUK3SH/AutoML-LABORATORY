@@ -1,6 +1,7 @@
 from sklearn.linear_model import LogisticRegression, LinearRegression
-from sklearn.metrics import accuracy_score, mean_squared_error
+from sklearn.metrics import accuracy_score, mean_squared_error, r2_score
 from .logger import setup_logger
+import numpy as np
 
 log = setup_logger("BASELINE")
 
@@ -9,14 +10,10 @@ def train_baseline(X_train, X_test, y_train, y_test, task: str):
         model = LogisticRegression(max_iter=1000)
         model.fit(X_train, y_train)
         preds = model.predict(X_test)
-        score = accuracy_score(y_test, preds)
-        metric = "accuracy"
-    else:
-        model = LinearRegression()
-        model.fit(X_train, y_train)
-        preds = model.predict(X_test)
-        score = mean_squared_error(y_test, preds)
-        metric = "mse"
+        return "accuracy", accuracy_score(y_test, preds)
 
-    log.info(f"Baseline {metric}: {score}")
-    return metric, score
+    model = LinearRegression()
+    model.fit(X_train, y_train)
+    preds = model.predict(X_test)
+    rmse = np.sqrt(mean_squared_error(y_test, preds))
+    return "rmse", rmse

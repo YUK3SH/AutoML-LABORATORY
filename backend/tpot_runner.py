@@ -1,5 +1,6 @@
 from tpot import TPOTClassifier, TPOTRegressor
 from sklearn.metrics import accuracy_score, mean_squared_error
+import numpy as np
 from .logger import setup_logger
 
 log = setup_logger("TPOT")
@@ -15,49 +16,42 @@ def run_tpot(
     time_limit: int = 120
 ):
     if X_train.shape[0] < MIN_ROWS:
-        msg = f"TPOT skipped: need >= {MIN_ROWS} rows, got {X_train.shape[0]}"
-        log.warning(msg)
-        return {"skipped": True, "reason": msg}
-
-    log.info("Starting TPOT")
-    log.info(f"Time limit: {time_limit}s")
+        return {"skipped": True, "reason": "Dataset too small"}
 
     if task == "classification":
         model = TPOTClassifier(
             generations=2,
             population_size=10,
-            verbosity=2,
             max_time_mins=time_limit / 60,
-            n_jobs=1,
             random_state=42,
+            n_jobs=1,
+            verbosity=0,
             disable_update_check=True
         )
     else:
         model = TPOTRegressor(
             generations=2,
             population_size=10,
-            verbosity=2,
             max_time_mins=time_limit / 60,
-            n_jobs=1,
             random_state=42,
+            n_jobs=1,
+            verbosity=0,
             disable_update_check=True
         )
 
     model.fit(X_train, y_train)
-
     preds = model.predict(X_test)
 
     if task == "classification":
-        score = accuracy_score(y_test, preds)
-        metric = "accuracy"
-    else:
-        score = mean_squared_error(y_test, preds)
-        metric = "mse"
+        return {
+            "skipped": False,
+            "metric": "accuracy",
+            "score": accuracy_score(y_test, preds)
+        }
 
-    log.info(f"TPOT {metric}: {score}")
-
+    rmse = np.sqrt(mean_squared_error(y_test, preds))
     return {
         "skipped": False,
-        "metric": metric,
-        "score": score
+        "metric": "rmse",
+        "score": rmse
     }

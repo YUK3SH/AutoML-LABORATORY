@@ -1,5 +1,6 @@
 from autogluon.tabular import TabularPredictor
 from .logger import setup_logger
+import numpy as np
 
 log = setup_logger("AUTOGLUON")
 
@@ -13,20 +14,13 @@ def run_autogluon(
     time_limit: int = 60
 ):
     if train_df.shape[0] < MIN_ROWS:
-        msg = f"AutoGluon skipped: need >= {MIN_ROWS} rows, got {train_df.shape[0]}"
-        log.warning(msg)
-        return {
-            "skipped": True,
-            "reason": msg
-        }
-
-    log.info("Starting AutoGluon training")
-    log.info(f"Time limit: {time_limit}s")
+        return {"skipped": True, "reason": "Dataset too small"}
 
     predictor = TabularPredictor(
         label=target,
         problem_type=task,
-        verbosity=2
+        eval_metric="accuracy" if task == "classification" else "rmse",
+        verbosity=0
     )
 
     predictor.fit(
@@ -35,15 +29,9 @@ def run_autogluon(
         presets="medium_quality_faster_train"
     )
 
-    leaderboard = predictor.leaderboard(
-        test_df,
-        silent=True
-    )
-
-    log.info("AutoGluon training completed")
+    lb = predictor.leaderboard(test_df, silent=True)
 
     return {
         "skipped": False,
-        "leaderboard": leaderboard.to_dict(orient="records")
+        "leaderboard": lb.to_dict(orient="records")
     }
-
