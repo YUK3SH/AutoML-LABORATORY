@@ -1,6 +1,6 @@
 from tpot import TPOTClassifier, TPOTRegressor
-from sklearn.metrics import accuracy_score, mean_squared_error
-import numpy as np
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from .logger import setup_logger
 
 log = setup_logger("TPOT")
@@ -23,9 +23,9 @@ def run_tpot(
             generations=2,
             population_size=10,
             max_time_mins=time_limit / 60,
+            verbosity=2,
             random_state=42,
             n_jobs=1,
-            verbosity=0,
             disable_update_check=True
         )
     else:
@@ -33,25 +33,38 @@ def run_tpot(
             generations=2,
             population_size=10,
             max_time_mins=time_limit / 60,
+            verbosity=2,
             random_state=42,
             n_jobs=1,
-            verbosity=0,
             disable_update_check=True
         )
 
+    log.info("TPOT training started")
     model.fit(X_train, y_train)
+
     preds = model.predict(X_test)
 
     if task == "classification":
-        return {
-            "skipped": False,
-            "metric": "accuracy",
-            "score": accuracy_score(y_test, preds)
+        metrics = {
+            "accuracy": accuracy_score(y_test, preds),
+            "precision": precision_score(y_test, preds, average="macro"),
+            "recall": recall_score(y_test, preds, average="macro"),
+            "f1": f1_score(y_test, preds, average="macro"),
+        }
+    else:
+        metrics = {
+            "rmse": mean_squared_error(y_test, preds, squared=False),
+            "mae": mean_absolute_error(y_test, preds),
+            "r2": r2_score(y_test, preds),
         }
 
-    rmse = np.sqrt(mean_squared_error(y_test, preds))
     return {
         "skipped": False,
-        "metric": "rmse",
-        "score": rmse
+        "metrics": metrics,
+        "leaderboard": [
+            {
+                "model_id": "TPOT_Best_Pipeline",
+                **metrics
+            }
+        ]
     }
