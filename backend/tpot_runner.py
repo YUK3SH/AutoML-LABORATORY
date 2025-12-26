@@ -1,6 +1,13 @@
 from tpot import TPOTClassifier, TPOTRegressor
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+from sklearn.metrics import (
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score,
+    mean_squared_error,
+    mean_absolute_error,
+    r2_score,
+)
 from .logger import setup_logger
 
 log = setup_logger("TPOT")
@@ -18,38 +25,38 @@ def run_tpot(
     if X_train.shape[0] < MIN_ROWS:
         return {"skipped": True, "reason": "Dataset too small"}
 
+    log.info("TPOT training started")
+
     if task == "classification":
         model = TPOTClassifier(
             generations=2,
             population_size=10,
             max_time_mins=time_limit / 60,
-            verbosity=2,
             random_state=42,
-            n_jobs=1,
-            disable_update_check=True
+            n_jobs=1
         )
     else:
         model = TPOTRegressor(
             generations=2,
             population_size=10,
             max_time_mins=time_limit / 60,
-            verbosity=2,
             random_state=42,
-            n_jobs=1,
-            disable_update_check=True
+            n_jobs=1
         )
 
-    log.info("TPOT training started")
     model.fit(X_train, y_train)
-
     preds = model.predict(X_test)
+
+    # FIX: decode labels if TPOT encoded them
+    if task == "classification" and hasattr(model, "label_encoder_"):
+        preds = model.label_encoder_.inverse_transform(preds)
 
     if task == "classification":
         metrics = {
             "accuracy": accuracy_score(y_test, preds),
-            "precision": precision_score(y_test, preds, average="macro"),
-            "recall": recall_score(y_test, preds, average="macro"),
-            "f1": f1_score(y_test, preds, average="macro"),
+            "precision": precision_score(y_test, preds, average="macro", zero_division=0),
+            "recall": recall_score(y_test, preds, average="macro", zero_division=0),
+            "f1": f1_score(y_test, preds, average="macro", zero_division=0),
         }
     else:
         metrics = {
