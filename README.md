@@ -1,103 +1,99 @@
-🚀 AutoML-Driven Web Platform for End-to-End Data Analysis and Decision Support
-📌 Overview
+# AutoML Laboratory
 
-This project presents a full-stack AutoML web platform designed to automate the complete machine learning lifecycle — from dataset ingestion to model evaluation — enabling efficient data-driven decision support with minimal manual intervention.
+## Overview
+AutoML Laboratory is a full-stack web platform designed to automate the complete machine learning lifecycle. The system enables end-to-end data analysis and decision support by integrating multiple open-source AutoML frameworks within a user-friendly web interface.
 
-The system integrates multiple state-of-the-art open-source AutoML frameworks and provides a web-based interface to simplify machine learning workflows for both technical and non-technical users.
+The goal of this project is to reduce manual effort in model selection, training, and evaluation while providing transparent and comparable results for informed decision-making.
 
-🎯 Objectives
+---
 
-Automate model selection and training
+## Objectives
+- Automate the machine learning pipeline
+- Eliminate manual model selection and hyperparameter tuning
+- Provide standardized evaluation metrics
+- Support data-driven decision making
+- Enable reproducible ML workflows
 
-Eliminate manual hyperparameter tuning
+---
 
-Provide transparent and comparable evaluation metrics
-
-Support informed decision-making through model insights
-
-🧠 AutoML Frameworks Integrated
-
-H2O AutoML
-
-AutoGluon
-
-TPOT
-
-FLAML
-
-Each framework is evaluated using standardized metrics to ensure fair comparison and reliability.
-
-🏗️ System Architecture
-User Interface (React)
-        ↓
+## System Architecture
+Frontend (React)
+↓
 Backend API (Python)
-        ↓
+↓
 AutoML Engines
-        ↓
-Evaluation & Decision Support
+↓
+Model Evaluation & Insights
 
-🖥️ Technology Stack
-Frontend
+yaml
+Copy code
 
-React.js
+---
 
-Tailwind CSS
+## Technology Stack
 
-Backend
+### Frontend
+- React.js
+- Tailwind CSS
+- JavaScript (ES6+)
 
-Python
+### Backend
+- Python
+- Flask / FastAPI
+- Pandas
+- NumPy
+- Scikit-learn
 
-Flask / FastAPI
+### AutoML Frameworks
+- H2O AutoML
+- AutoGluon
+- TPOT
+- FLAML
 
-Pandas, NumPy, Scikit-learn
+---
 
-AutoML
+## Core Features
+- Dataset upload (CSV format)
+- Automated model training
+- Multi-model comparison
+- Performance evaluation metrics
+- End-to-end ML workflow automation
+- Decision-support oriented outputs
 
-H2O
+---
 
-AutoGluon
-
-TPOT
-
-FLAML
-
-⚙️ Core Features
-
-Dataset upload (CSV format)
-
-Automated model training and evaluation
-
-Multi-model performance comparison
-
-Visualization of key metrics
-
-End-to-end reproducible ML workflow
-
-📁 Project Structure
+## Project Structure
 .
-├── backend/        # AutoML pipelines and APIs
-├── frontend/       # Web-based user interface
+├── backend/ # Backend APIs and AutoML logic
+├── frontend/ # Web-based user interface
 ├── requirements.txt
-├── .gitignore
+├── README.md
 
-🚀 Getting Started
-Clone the repository
-git clone https://github.com/YUK3SH/AutoML-driven-web-platform-for-end-to-end-data-analysis-and-decision-support.git
-cd AutoML-driven-web-platform-for-end-to-end-data-analysis-and-decision-support
+yaml
+Copy code
 
-Backend setup
+---
+
+## Getting Started
+
+### Clone the Repository
+```bash
+git clone https://github.com/YUK3SH/AutoML-LABORATORY.git
+cd AutoML-LABORATORY
+Backend Setup
+bash
+Copy code
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 python backend/app.py
-
-Frontend setup
+Frontend Setup
+bash
+Copy code
 cd frontend
 npm install
 npm start
-
-📊 Use Cases
-
+Use Cases
 Automated data analysis
 
 Machine learning benchmarking
@@ -106,30 +102,28 @@ Decision-support systems
 
 Academic and research applications
 
-🚧 Project Status
+Project Status
+Core AutoML pipelines implemented
 
-✔ Core AutoML pipelines implemented
+Frontend and backend integrated
 
-✔ Frontend–backend integration completed
+Deployment and monitoring in progress
 
-🔄 Deployment and monitoring under development
+Future Enhancements
+Model explainability (SHAP, LIME)
 
-🔮 Future Scope
-
-Model explainability (SHAP / LIME)
-
-Advanced feature engineering
+Automated feature engineering
 
 User authentication
 
 Cloud deployment and scalability
 
-👤 Author
+Model monitoring and versioning
 
+Author
 Yukeshwar R
-GitHub: YUK3SH
+GitHub: https://github.com/YUK3SH
 
-📜 License
-
+License
 This project is intended for academic and research purposes.
 License details will be added in future updates.
