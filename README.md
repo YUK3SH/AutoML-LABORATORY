@@ -123,7 +123,7 @@ npm start
 
 ## Author
 Yukeshwar R  
-GitHub: https://github.com/YUK3SH
+Gmail: yukeshwarr2@gmail.com
 
 ---
 
