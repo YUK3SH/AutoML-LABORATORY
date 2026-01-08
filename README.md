@@ -17,16 +17,15 @@ The goal of this project is to reduce manual effort in model selection, training
 ---
 
 ## System Architecture
+```text
 Frontend (React)
-↓
+        ↓
 Backend API (Python)
-↓
+        ↓
 AutoML Engines
-↓
+        ↓
 Model Evaluation & Insights
-
-yaml
-Copy code
+```
 
 ---
 
@@ -63,14 +62,13 @@ Copy code
 ---
 
 ## Project Structure
+```text
 .
-├── backend/ # Backend APIs and AutoML logic
-├── frontend/ # Web-based user interface
+├── backend/        # Backend APIs and AutoML logic
+├── frontend/       # Web-based user interface
 ├── requirements.txt
-├── README.md
-
-yaml
-Copy code
+└── README.md
+```
 
 ---
 
@@ -80,50 +78,55 @@ Copy code
 ```bash
 git clone https://github.com/YUK3SH/AutoML-LABORATORY.git
 cd AutoML-LABORATORY
-Backend Setup
-bash
-Copy code
+```
+
+### Backend Setup
+```bash
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 python backend/app.py
-Frontend Setup
-bash
-Copy code
+```
+
+### Frontend Setup
+```bash
 cd frontend
 npm install
 npm start
-Use Cases
-Automated data analysis
+```
 
-Machine learning benchmarking
+---
 
-Decision-support systems
+## Use Cases
+- Automated data analysis
+- Machine learning benchmarking
+- Decision-support systems
+- Academic and research applications
 
-Academic and research applications
+---
 
-Project Status
-Core AutoML pipelines implemented
+## Project Status
+- Core AutoML pipelines implemented
+- Frontend and backend integrated
+- Deployment and monitoring in progress
 
-Frontend and backend integrated
+---
 
-Deployment and monitoring in progress
+## Future Enhancements
+- Model explainability (SHAP, LIME)
+- Automated feature engineering
+- User authentication
+- Cloud deployment and scalability
+- Model monitoring and versioning
 
-Future Enhancements
-Model explainability (SHAP, LIME)
+---
 
-Automated feature engineering
-
-User authentication
-
-Cloud deployment and scalability
-
-Model monitoring and versioning
-
-Author
-Yukeshwar R
+## Author
+Yukeshwar R  
 GitHub: https://github.com/YUK3SH
 
-License
-This project is intended for academic and research purposes.
+---
+
+## License
+This project is intended for academic and research purposes.  
 License details will be added in future updates.
