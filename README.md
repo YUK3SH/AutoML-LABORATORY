@@ -1,132 +1,129 @@
 # AutoML Laboratory
-
-## Overview
-AutoML Laboratory is a full-stack web platform designed to automate the complete machine learning lifecycle. The system enables end-to-end data analysis and decision support by integrating multiple open-source AutoML frameworks within a user-friendly web interface.
-
-The goal of this project is to reduce manual effort in model selection, training, and evaluation while providing transparent and comparable results for informed decision-making.
+<sub><em>An AutoML-driven web platform for end-to-end data analysis and decision support</em></sub>
 
 ---
 
-## Objectives
-- Automate the machine learning pipeline
-- Eliminate manual model selection and hyperparameter tuning
-- Provide standardized evaluation metrics
-- Support data-driven decision making
-- Enable reproducible ML workflows
+### 🧠 Overview
+**AutoML Laboratory** is a full-stack web platform focused on automating key stages of the **machine learning lifecycle**.
+It integrates multiple open-source **AutoML frameworks** into a unified web interface for experimentation,
+benchmarking, and decision support.
+
+The platform reduces manual effort in **model selection**, **training**, and **evaluation**
+while ensuring **transparent** and **reproducible** results.
 
 ---
 
-## System Architecture
-```text
-Frontend (React)
-        ↓
-Backend API (Python)
-        ↓
-AutoML Engines
-        ↓
-Model Evaluation & Insights
-```
+### 🎯 Objectives
+- Automate the **end-to-end ML pipeline**
+- Reduce manual **model selection** and **hyperparameter tuning**
+- Provide standardized **evaluation metrics**
+- Enable **data-driven decision making**
+- Support **reproducible ML workflows**
 
 ---
 
-## Technology Stack
-
-### Frontend
-- React.js
-- Tailwind CSS
-- JavaScript (ES6+)
-
-### Backend
-- Python
-- Flask / FastAPI
-- Pandas
-- NumPy
-- Scikit-learn
-
-### AutoML Frameworks
-- H2O AutoML
-- AutoGluon
-- TPOT
-- FLAML
+### 🏗️ System Architecture
+`React Frontend` → `Python Backend API` → `AutoML Engines` → `Evaluation & Insights`
 
 ---
 
-## Core Features
-- Dataset upload (CSV format)
-- Automated model training
-- Multi-model comparison
-- Performance evaluation metrics
-- End-to-end ML workflow automation
-- Decision-support oriented outputs
+### 🛠️ Technology Stack
+
+**Frontend**  
+  `React.js`  
+  `Tailwind CSS`  
+  `JavaScript (ES6+)`
+
+**Backend**  
+  `Python`  
+  `Flask / FastAPI`  
+  `Pandas`  
+  `NumPy`  
+  `Scikit-learn`
+
+**AutoML Frameworks**  
+  `H2O AutoML`  
+  `AutoGluon`  
+  `TPOT`  
+  `FLAML`
 
 ---
 
-## Project Structure
-```text
-.
-├── backend/        # Backend APIs and AutoML logic
-├── frontend/       # Web-based user interface
-├── requirements.txt
-└── README.md
-```
+### ✨ Core Features
+- `CSV` dataset upload
+- Automated **model training**
+- **Multi-model comparison**
+- Standardized **evaluation metrics**
+- End-to-end **ML workflow automation**
 
 ---
 
-## Getting Started
+### 📂 Project Structure
 
-### Clone the Repository
-```bash
-git clone https://github.com/YUK3SH/AutoML-LABORATORY.git
-cd AutoML-LABORATORY
-```
-
-### Backend Setup
-```bash
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-python backend/app.py
-```
-
-### Frontend Setup
-```bash
-cd frontend
-npm install
-npm start
-```
+    AutoML-LABORATORY/
+    |-- backend/
+    |   |-- app.py
+    |   `-- automl/
+    |-- frontend/
+    |   |-- src/
+    |   `-- public/
+    |-- requirements.txt
+    `-- README.md
 
 ---
 
-## Use Cases
-- Automated data analysis
-- Machine learning benchmarking
-- Decision-support systems
-- Academic and research applications
+### 🚀 Getting Started
+
+**Clone repository**
+
+    git clone https://github.com/YUK3SH/AutoML-LABORATORY.git
+    cd AutoML-LABORATORY
+
+**Backend setup**
+
+    python3 -m venv venv
+    source venv/bin/activate
+    pip install -r requirements.txt
+    python backend/app.py
+
+**Frontend setup**
+
+    cd frontend
+    npm install
+    npm start
 
 ---
 
-## Project Status
+### ✅ Current Capabilities
+- Tabular data **AutoML benchmarking**
+- Multiple **AutoML framework integration**
+- Unified **model evaluation**
+- Functional **frontend–backend integration**
+
+---
+
+### 📌 Project Status
 - Core AutoML pipelines implemented
 - Frontend and backend integrated
 - Deployment and monitoring in progress
 
 ---
 
-## Future Enhancements
-- Model explainability (SHAP, LIME)
+### 🔮 Future Enhancements
+- Model explainability (`SHAP`, `LIME`)
 - Automated feature engineering
 - User authentication
-- Cloud deployment and scalability
+- Cloud deployment
 - Model monitoring and versioning
 
 ---
 
-## Author
-Yukeshwar R  
-Gmail: yukeshwarr2@gmail.com
+### 👤 Author
+**Yukeshwar R**  
+Email: `yukeshwarr2@gmail.com`
 
 ---
 
-## License
-This project is intended for academic and research purposes.  
-License details will be added in future updates.
+### 📄 License
+**MIT License (planned)**
+EOF
