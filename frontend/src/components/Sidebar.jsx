@@ -34,8 +34,10 @@ function Sidebar() {
         <p className="text-xs font-bold uppercase text-gray-500 dark:text-gray-400 mb-2">
           ML Tools
         </p>
+
         <NavItem to="/instruction" label="Instruction" />
         <NavItem to="/h2o" label="Select / Run" />
+        <NavItem to="/benchmark" label="Benchmark" />
         <NavItem to="/results" label="Result" />
       </div>
 

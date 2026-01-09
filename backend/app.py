@@ -17,7 +17,10 @@ from backend.tpot_runner import run_tpot
 from backend.flaml_runner import run_flaml
 from backend.ws_automl import automl_ws
 
+from backend.compare.service import compare_results
+
 app = FastAPI()
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -119,6 +122,18 @@ async def upload(file: UploadFile = File(...)):
 def list_files():
     return {"files": os.listdir("datasets")}
 
+
+# -------------------- COMPARE API --------------------
+
+@app.post("/compare")
+def compare_api(payload: dict):
+    return compare_results(
+        dataset=payload["dataset"],
+        selected_tool=payload["tool"]
+    )
+
+
+# -------------------- WEBSOCKETS --------------------
 
 @app.websocket("/ws/automl")
 async def ws_automl_entry(websocket: WebSocket):
