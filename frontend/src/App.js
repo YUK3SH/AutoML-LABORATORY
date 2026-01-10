@@ -11,8 +11,9 @@ import H2OPage from "./pages/H2OPage";
 import ResultsPage from "./pages/ResultsPage";
 import Instruction from "./pages/Instruction";
 import SystemLogs from "./pages/SystemLogs";
+import BenchmarkPage from "./pages/BenchmarkPage";
 
-function AppShell() {
+function AppShell({ lastResult, setLastResult }) {
   const location = useLocation();
   const [theme, setTheme] = useState("dark");
 
@@ -42,12 +43,28 @@ function AppShell() {
       <div className="flex flex-1 overflow-hidden">
         {!isHome && <Sidebar />}
 
-        <main className={`flex-1 overflow-y-auto ${isHome ? "" : "p-6 bg-gray-100 dark:bg-gray-900"}`}>
+        <main
+          className={`flex-1 overflow-y-auto ${
+            isHome ? "" : "p-6 bg-gray-100 dark:bg-gray-900"
+          }`}
+        >
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/upload" element={<UploadPage />} />
-            <Route path="/h2o" element={<H2OPage />} />
-            <Route path="/results" element={<ResultsPage />} />
+
+            {/* 🔥 SELECT & RUN */}
+            <Route
+              path="/h2o"
+              element={<H2OPage setLastResult={setLastResult} />}
+            />
+
+            {/* 🔥 RESULTS PAGE */}
+            <Route
+              path="/results"
+              element={<ResultsPage data={lastResult} />}
+            />
+
+            <Route path="/benchmark" element={<BenchmarkPage />} />
             <Route path="/instruction" element={<Instruction />} />
             <Route path="/system-logs" element={<SystemLogs />} />
             <Route path="*" element={<HomePage />} />
@@ -59,9 +76,14 @@ function AppShell() {
 }
 
 export default function App() {
+  const [lastResult, setLastResult] = useState(null);
+
   return (
     <Router>
-      <AppShell />
+      <AppShell
+        lastResult={lastResult}
+        setLastResult={setLastResult}
+      />
     </Router>
   );
 }

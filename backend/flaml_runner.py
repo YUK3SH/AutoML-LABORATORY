@@ -47,15 +47,18 @@ def run_flaml(X_train, X_test, y_train, y_test, task: str, time_limit: int = 60)
             "r2": r2_score(y_test, preds),
         }
 
+    best_model_id = str(automl.best_estimator)
+
     leaderboard = [
         {
-            "model_id": automl.best_estimator,
+            "model_id": best_model_id,
             **metrics,
         }
     ]
 
     return {
         "skipped": False,
+        "best_model": best_model_id,
         "metrics": metrics,
         "leaderboard": leaderboard,
     }

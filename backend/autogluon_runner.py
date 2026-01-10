@@ -73,9 +73,13 @@ def run_autogluon(
             })
 
     confusion = None
-    if task == "classification" and evaluated:
-        best_model = evaluated[0]["model_id"]
-        best_preds = predictor.predict(X_test, model=best_model)
+    best_model_id = None
+
+    if evaluated:
+        best_model_id = evaluated[0]["model_id"]
+
+    if task == "classification" and best_model_id:
+        best_preds = predictor.predict(X_test, model=best_model_id)
 
         labels = sorted(set(y_true))
         cm = confusion_matrix(y_true, best_preds, labels=labels)
@@ -87,6 +91,7 @@ def run_autogluon(
 
     return {
         "skipped": False,
+        "best_model": best_model_id,
         "metrics": evaluated[0] if evaluated else {},
         "confusion_matrix": confusion,
         "leaderboard": evaluated

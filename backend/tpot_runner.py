@@ -47,7 +47,6 @@ def run_tpot(
     model.fit(X_train, y_train)
     preds = model.predict(X_test)
 
-    # FIX: decode labels if TPOT encoded them
     if task == "classification" and hasattr(model, "label_encoder_"):
         preds = model.label_encoder_.inverse_transform(preds)
 
@@ -67,6 +66,7 @@ def run_tpot(
 
     return {
         "skipped": False,
+        "best_model": "TPOT_Best_Pipeline",
         "metrics": metrics,
         "leaderboard": [
             {

@@ -1,26 +1,15 @@
-import os
-import asyncio
-from fastapi import FastAPI, UploadFile, File, WebSocket
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+import os
 
+from backend.orchestrator import run_pipeline
+from backend.compare.registry import load_results
 from backend.system_stats import send_system_info, send_system_stats
-from backend.logger import setup_logger
-from backend.data_loader import load_dataset
-from backend.upload import upload_dataset
-from backend.splitter import split_data
-from backend.task_detector import detect_task
-from backend.metrics import select_metrics
-from backend.baseline import train_baseline
-from backend.autogluon_runner import run_autogluon
-from backend.h2o_runner import run_h2o
-from backend.tpot_runner import run_tpot
-from backend.flaml_runner import run_flaml
-from backend.ws_automl import automl_ws
 
-from backend.compare.service import compare_results
+app = FastAPI(title="AutoML Laboratory")
 
-app = FastAPI()
-
+# -------------------- CORS --------------------
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -29,136 +18,109 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-log = setup_logger("AUTOML")
+# -------------------- MODELS --------------------
+class RunRequest(BaseModel):
+    dataset: str
+    tool: str
 
 
-@app.get("/ping")
-def ping():
-    return {"status": "ok"}
+class CompareRequest(BaseModel):
+    dataset: str
+    tool: str
 
 
-@app.get("/load_sample")
-def load_sample():
-    df = load_dataset("datasets/sample.csv")
-    return {"rows": df.shape[0], "cols": df.shape[1]}
-
-
-@app.get("/baseline")
-def baseline_api():
-    df = load_dataset("datasets/sample.csv")
-    task, target = detect_task(df)
-    X_train, X_test, y_train, y_test = split_data(df, target, task)
-    metric, score = train_baseline(X_train, X_test, y_train, y_test, task)
-    return {"metric": metric, "score": score}
-
-
-@app.get("/autogluon")
-def autogluon_api():
-    df = load_dataset("datasets/sample.csv")
-    task, target = detect_task(df)
-
-    X_train, X_test, y_train, y_test = split_data(df, target, task)
-
-    train_df = X_train.copy()
-    train_df[target] = y_train
-
-    test_df = X_test.copy()
-    test_df[target] = y_test
-
-    return run_autogluon(
-        train_df=train_df,
-        test_df=test_df,
-        target=target,
-        task=task,
-        time_limit=60
-    )
-
-
-@app.get("/h2o")
-def h2o_api():
-    df = load_dataset("datasets/sample.csv")
-    task, target = detect_task(df)
-
-    X_train, X_test, y_train, y_test = split_data(df, target, task)
-
-    train_df = X_train.copy()
-    train_df[target] = y_train
-
-    test_df = X_test.copy()
-    test_df[target] = y_test
-
-    return run_h2o(
-        train_df=train_df,
-        test_df=test_df,
-        target=target,
-        task=task,
-        time_limit=60
-    )
-
-
-@app.get("/tpot")
-def tpot_api():
-    df = load_dataset("datasets/sample.csv")
-    task, target = detect_task(df)
-
-    X_train, X_test, y_train, y_test = split_data(df, target, task)
-
-    return run_tpot(
-        X_train=X_train,
-        X_test=X_test,
-        y_train=y_train,
-        y_test=y_test,
-        task=task,
-        time_limit=120
-    )
-
-
-@app.post("/upload")
-async def upload(file: UploadFile = File(...)):
-    return await upload_dataset(file)
-
+# -------------------- ROUTES --------------------
 
 @app.get("/list_files")
 def list_files():
-    return {"files": os.listdir("datasets")}
+    if not os.path.exists("datasets"):
+        return {"files": []}
+
+    files = [
+        f for f in os.listdir("datasets")
+        if f.lower().endswith(".csv")
+    ]
+    return {"files": files}
 
 
-# -------------------- COMPARE API --------------------
+@app.post("/run")
+async def run_automl(req: RunRequest):
+    """
+    Select & Run AutoML (single tool, REST fallback)
+    """
+    result = None
+
+    async for msg in run_pipeline(req.dataset, req.tool):
+        if msg["type"] == "result":
+            result = msg["data"]
+
+    if not result:
+        raise HTTPException(status_code=500, detail="AutoML run failed")
+
+    return result
+
 
 @app.post("/compare")
-def compare_api(payload: dict):
-    return compare_results(
-        dataset=payload["dataset"],
-        selected_tool=payload["tool"]
-    )
+def compare(req: CompareRequest):
+    """
+    Benchmark comparison using stored results
+    """
+    records = [
+        r for r in load_results()
+        if r.get("dataset") == req.dataset
+    ]
+
+    selected = None
+    others = []
+
+    for r in records:
+        if r.get("tool") == req.tool:
+            selected = r
+        else:
+            others.append(r)
+
+    return {
+        "selected": selected,
+        "others": others
+    }
 
 
-# -------------------- WEBSOCKETS --------------------
+# -------------------- WEBSOCKET --------------------
 
 @app.websocket("/ws/automl")
-async def ws_automl_entry(websocket: WebSocket):
-    await automl_ws(websocket, engine="h2o")
-
-
-@app.websocket("/ws/autogluon")
-async def ws_autogluon(websocket: WebSocket):
-    await automl_ws(websocket, engine="autogluon")
-
-
-@app.websocket("/ws/tpot")
-async def ws_tpot(websocket: WebSocket):
-    await automl_ws(websocket, engine="tpot")
-
-
-@app.websocket("/ws/flaml")
-async def ws_flaml(websocket: WebSocket):
-    await automl_ws(websocket, engine="flaml")
-
-
-@app.websocket("/ws/system_logs")
-async def ws_system_logs(websocket: WebSocket):
+async def ws_automl(websocket: WebSocket):
+    """
+    Live AutoML execution with logs + system stats
+    """
     await websocket.accept()
-    await send_system_info(websocket)
-    while True:
-        await send_system_stats(websocket)
-        await asyncio.sleep(1)
+
+    try:
+        payload = await websocket.receive_json()
+        dataset = payload.get("filename")
+        tool = payload.get("tool", "h2o")
+
+        if not dataset:
+            await websocket.close(code=1008)
+            return
+
+        await send_system_info(websocket)
+
+        async for msg in run_pipeline(dataset, tool):
+            if msg["type"] == "log":
+                await websocket.send_json(msg)
+                await send_system_stats(websocket)
+
+            elif msg["type"] == "result":
+                await websocket.send_json({
+                    "type": "result",
+                    "data": msg["data"]
+                })
+                await websocket.send_json({"type": "done"})
+                await websocket.close()
+                return
+
+        await websocket.send_json({"type": "done"})
+        await websocket.close()
+
+    except WebSocketDisconnect:
+        pass

@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-export default function H2OToolPage() {
+export default function H2OPage({ setLastResult }) {
   const navigate = useNavigate();
 
   const [files, setFiles] = useState([]);
@@ -26,7 +26,7 @@ export default function H2OToolPage() {
   useEffect(() => {
     axios
       .get("http://127.0.0.1:8000/list_files")
-      .then((res) => setFiles(res.data.files))
+      .then((res) => setFiles(res.data.files || []))
       .catch(() => setFiles([]));
   }, []);
 
@@ -78,12 +78,9 @@ export default function H2OToolPage() {
         setLoading(false);
 
         if (resultRef.current) {
-          navigate("/results", {
-            state: {
-              result: resultRef.current,
-              filename: selectedFile,
-            },
-          });
+          // ✅ THIS IS THE CRITICAL FIX
+          setLastResult(resultRef.current);
+          navigate("/results");
         }
       }
     };

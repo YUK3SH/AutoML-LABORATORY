@@ -8,9 +8,14 @@ from backend.flaml_runner import run_flaml
 from backend.system_stats import monitor_start, monitor_tick, monitor_end
 from backend.compare.registry import save_result
 
+
 async def run_pipeline(filename, engine):
+    yield {"type": "log", "message": f"Loading dataset: {filename}"}
+
     df = load_dataset(f"datasets/{filename}")
     task, target = detect_task(df)
+
+    yield {"type": "log", "message": f"Detected task: {task}, target: {target}"}
 
     X_train, X_test, y_train, y_test = split_data(df, target, task)
 
@@ -21,6 +26,8 @@ async def run_pipeline(filename, engine):
 
     monitor = monitor_start()
 
+    yield {"type": "log", "message": f"Starting {engine.upper()} AutoML"}
+
     if engine == "h2o":
         raw = run_h2o(train_df, test_df, target, task)
     elif engine == "autogluon":
@@ -30,21 +37,27 @@ async def run_pipeline(filename, engine):
     elif engine == "flaml":
         raw = run_flaml(X_train, X_test, y_train, y_test, task)
     else:
+        yield {"type": "log", "message": "Unknown engine"}
         return
 
     monitor_tick(monitor)
     system = monitor_end(monitor)
 
     if raw.get("skipped"):
+        yield {"type": "log", "message": raw.get("reason", "Skipped")}
         return
+
+    leaderboard = raw.get("leaderboard", [])
+    best_model = leaderboard[0]["model_id"] if leaderboard else "UNKNOWN_MODEL"
 
     entry = {
         "dataset": filename,
         "tool": engine,
         "task": task,
-        "best_model": raw["leaderboard"][0]["model_id"],
-        "metrics": raw["metrics"],
-        "system": system
+        "best_model": best_model,
+        "metrics": raw.get("metrics", {}),
+        "system": system,
+        "leaderboard": leaderboard
     }
 
     save_result(entry)
