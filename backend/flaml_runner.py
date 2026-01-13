@@ -34,17 +34,26 @@ def run_flaml(X_train, X_test, y_train, y_test, task: str, time_limit: int = 60)
     preds = automl.predict(X_test)
 
     if task == "classification":
+        acc = float(accuracy_score(y_test, preds))
+        prec = float(precision_score(y_test, preds, average="weighted", zero_division=0))
+        rec = float(recall_score(y_test, preds, average="weighted", zero_division=0))
+        f1 = float(f1_score(y_test, preds, average="weighted", zero_division=0))
+
         metrics = {
-            "accuracy": accuracy_score(y_test, preds),
-            "precision": precision_score(y_test, preds, average="macro"),
-            "recall": recall_score(y_test, preds, average="macro"),
-            "f1": f1_score(y_test, preds, average="macro"),
+            "accuracy": round(acc, 4),
+            "precision_weighted": round(prec, 4),
+            "recall_weighted": round(rec, 4),
+            "f1_weighted": round(f1, 4),
         }
     else:
+        rmse = float(mean_squared_error(y_test, preds, squared=False))
+        mae = float(mean_absolute_error(y_test, preds))
+        r2 = float(r2_score(y_test, preds))
+
         metrics = {
-            "rmse": mean_squared_error(y_test, preds, squared=False),
-            "mae": mean_absolute_error(y_test, preds),
-            "r2": r2_score(y_test, preds),
+            "rmse": round(rmse, 4),
+            "mae": round(mae, 4),
+            "r2": round(r2, 4),
         }
 
     best_model_id = str(automl.best_estimator)

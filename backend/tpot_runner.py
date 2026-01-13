@@ -14,6 +14,7 @@ log = setup_logger("TPOT")
 
 MIN_ROWS = 50
 
+
 def run_tpot(
     X_train,
     X_test,
@@ -33,7 +34,8 @@ def run_tpot(
             population_size=10,
             max_time_mins=time_limit / 60,
             random_state=42,
-            n_jobs=1
+            n_jobs=1,
+            verbosity=0
         )
     else:
         model = TPOTRegressor(
@@ -41,27 +43,34 @@ def run_tpot(
             population_size=10,
             max_time_mins=time_limit / 60,
             random_state=42,
-            n_jobs=1
+            n_jobs=1,
+            verbosity=0
         )
 
     model.fit(X_train, y_train)
     preds = model.predict(X_test)
 
-    if task == "classification" and hasattr(model, "label_encoder_"):
-        preds = model.label_encoder_.inverse_transform(preds)
-
     if task == "classification":
+        acc = float(accuracy_score(y_test, preds))
+        prec = float(precision_score(y_test, preds, average="weighted", zero_division=0))
+        rec = float(recall_score(y_test, preds, average="weighted", zero_division=0))
+        f1 = float(f1_score(y_test, preds, average="weighted", zero_division=0))
+
         metrics = {
-            "accuracy": accuracy_score(y_test, preds),
-            "precision": precision_score(y_test, preds, average="macro", zero_division=0),
-            "recall": recall_score(y_test, preds, average="macro", zero_division=0),
-            "f1": f1_score(y_test, preds, average="macro", zero_division=0),
+            "accuracy": round(acc, 4),
+            "precision_weighted": round(prec, 4),
+            "recall_weighted": round(rec, 4),
+            "f1_weighted": round(f1, 4),
         }
     else:
+        rmse = float(mean_squared_error(y_test, preds, squared=False))
+        mae = float(mean_absolute_error(y_test, preds))
+        r2 = float(r2_score(y_test, preds))
+
         metrics = {
-            "rmse": mean_squared_error(y_test, preds, squared=False),
-            "mae": mean_absolute_error(y_test, preds),
-            "r2": r2_score(y_test, preds),
+            "rmse": round(rmse, 4),
+            "mae": round(mae, 4),
+            "r2": round(r2, 4),
         }
 
     return {

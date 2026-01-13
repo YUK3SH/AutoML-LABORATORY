@@ -7,8 +7,8 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 from .logger import setup_logger
 
 log = setup_logger("H2O")
-MIN_ROWS = 50
 
+MIN_ROWS = 50
 H2O_LOG_FILE = os.path.expanduser("~/.h2oai/h2o.log")
 
 
@@ -56,40 +56,41 @@ def run_h2o(train_df, test_df, target, task, time_limit=60, log_callback=None):
 
     stop_flag["stop"] = True
 
-    leaderboard = aml.leaderboard.as_data_frame()
-    models = leaderboard["model_id"].tolist()[:5]
+    lb_df = aml.leaderboard.as_data_frame()
+    model_ids = lb_df["model_id"].tolist()[:5]
 
     y_true = test_df[target].values
-    evaluated_models = []
+    leaderboard = []
 
-    for model_id in models:
+    for model_id in model_ids:
         model = h2o.get_model(model_id)
         preds = model.predict(test).as_data_frame().iloc[:, 0]
 
-        acc = accuracy_score(y_true, preds)
-        prec = precision_score(y_true, preds, average="weighted")
-        rec = recall_score(y_true, preds, average="weighted")
-        f1 = f1_score(y_true, preds, average="weighted")
+        acc = float(accuracy_score(y_true, preds))
+        prec = float(precision_score(y_true, preds, average="weighted", zero_division=0))
+        rec = float(recall_score(y_true, preds, average="weighted", zero_division=0))
+        f1 = float(f1_score(y_true, preds, average="weighted", zero_division=0))
 
-        evaluated_models.append({
+        leaderboard.append({
             "model_id": model_id,
             "accuracy": round(acc, 4),
-            "precision": round(prec, 4),
-            "recall": round(rec, 4),
-            "f1": round(f1, 4)
+            "precision_weighted": round(prec, 4),
+            "recall_weighted": round(rec, 4),
+            "f1_weighted": round(f1, 4)
         })
 
-    best_preds = h2o.get_model(models[0]).predict(test).as_data_frame().iloc[:, 0]
+    best = leaderboard[0]
+
+    best_preds = h2o.get_model(best["model_id"]).predict(test).as_data_frame().iloc[:, 0]
     labels = sorted(set(y_true))
     cm = confusion_matrix(y_true, best_preds, labels=labels)
 
     return {
         "skipped": False,
-        "model_id": models[0],
-        "metrics": evaluated_models[0],
+        "metrics": best,
+        "leaderboard": leaderboard,
         "confusion_matrix": {
             "labels": labels,
             "matrix": cm.tolist()
-        },
-        "leaderboard": evaluated_models
+        }
     }

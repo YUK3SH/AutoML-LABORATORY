@@ -51,36 +51,41 @@ def run_autogluon(
     X_test = test_df.drop(columns=[target])
 
     model_names = predictor.model_names()
-    evaluated = []
+    leaderboard = []
 
     for model_name in model_names[:5]:
         preds = predictor.predict(X_test, model=model_name)
 
         if task == "classification":
-            evaluated.append({
+            acc = float(accuracy_score(y_true, preds))
+            prec = float(precision_score(y_true, preds, average="weighted", zero_division=0))
+            rec = float(recall_score(y_true, preds, average="weighted", zero_division=0))
+            f1 = float(f1_score(y_true, preds, average="weighted", zero_division=0))
+
+            leaderboard.append({
                 "model_id": model_name,
-                "accuracy": round(accuracy_score(y_true, preds), 4),
-                "precision": round(precision_score(y_true, preds, average="weighted"), 4),
-                "recall": round(recall_score(y_true, preds, average="weighted"), 4),
-                "f1": round(f1_score(y_true, preds, average="weighted"), 4),
+                "accuracy": round(acc, 4),
+                "precision_weighted": round(prec, 4),
+                "recall_weighted": round(rec, 4),
+                "f1_weighted": round(f1, 4),
             })
         else:
-            evaluated.append({
+            rmse = float(mean_squared_error(y_true, preds, squared=False))
+            mae = float(mean_absolute_error(y_true, preds))
+            r2 = float(r2_score(y_true, preds))
+
+            leaderboard.append({
                 "model_id": model_name,
-                "rmse": round(mean_squared_error(y_true, preds, squared=False), 4),
-                "mae": round(mean_absolute_error(y_true, preds), 4),
-                "r2": round(r2_score(y_true, preds), 4),
+                "rmse": round(rmse, 4),
+                "mae": round(mae, 4),
+                "r2": round(r2, 4),
             })
 
     confusion = None
-    best_model_id = None
-
-    if evaluated:
-        best_model_id = evaluated[0]["model_id"]
+    best_model_id = leaderboard[0]["model_id"] if leaderboard else None
 
     if task == "classification" and best_model_id:
         best_preds = predictor.predict(X_test, model=best_model_id)
-
         labels = sorted(set(y_true))
         cm = confusion_matrix(y_true, best_preds, labels=labels)
 
@@ -92,7 +97,7 @@ def run_autogluon(
     return {
         "skipped": False,
         "best_model": best_model_id,
-        "metrics": evaluated[0] if evaluated else {},
+        "metrics": leaderboard[0] if leaderboard else {},
         "confusion_matrix": confusion,
-        "leaderboard": evaluated
+        "leaderboard": leaderboard
     }

@@ -99,18 +99,37 @@ async def run_automl(req: RunRequest):
 
 @app.post("/compare")
 def compare(req: CompareRequest):
-    """
-    Benchmark comparison using stored results
-    """
-    records = [
-        r for r in load_results()
+    records = load_results()
+
+    # 🔹 CASE 1: wildcard → latest dataset group
+    if req.dataset == "*" and req.tool == "*":
+        if not records:
+            return {"selected": None, "others": []}
+
+        # latest entry = last saved
+        selected = records[-1]
+        dataset = selected.get("dataset")
+
+        others = [
+            r for r in records
+            if r.get("dataset") == dataset and r != selected
+        ]
+
+        return {
+            "selected": selected,
+            "others": others
+        }
+
+    # 🔹 CASE 2: normal comparison
+    filtered = [
+        r for r in records
         if r.get("dataset") == req.dataset
     ]
 
     selected = None
     others = []
 
-    for r in records:
+    for r in filtered:
         if r.get("tool") == req.tool:
             selected = r
         else:
@@ -120,6 +139,7 @@ def compare(req: CompareRequest):
         "selected": selected,
         "others": others
     }
+
 
 
 # -------------------- WEBSOCKET --------------------
