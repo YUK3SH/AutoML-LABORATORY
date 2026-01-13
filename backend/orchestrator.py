@@ -42,13 +42,10 @@ async def run_pipeline(filename, engine):
 
     monitor_tick(monitor)
     system = monitor_end(monitor)
-
-    if raw.get("skipped"):
-        yield {"type": "log", "message": raw.get("reason", "Skipped")}
-        return
+    training_time_sec = system.get("elapsed_sec")
 
     leaderboard = raw.get("leaderboard", [])
-    best_model = leaderboard[0]["model_id"] if leaderboard else "UNKNOWN_MODEL"
+    best_model = leaderboard[0]["model_id"] if leaderboard else "UNKNOWN"
 
     entry = {
         "dataset": filename,
@@ -56,10 +53,10 @@ async def run_pipeline(filename, engine):
         "task": task,
         "best_model": best_model,
         "metrics": raw.get("metrics", {}),
+        "training_time_sec": training_time_sec,
         "system": system,
         "leaderboard": leaderboard
     }
 
     save_result(entry)
-
     yield {"type": "result", "data": entry}

@@ -1,56 +1,167 @@
 [
   {
     "dataset": "Iris.csv",
+    "tool": "autogluon",
+    "task": "classification",
+    "best_model": "LightGBMXT",
+    "metrics": {
+      "model_id": "LightGBMXT",
+      "accuracy": 0.9667,
+      "precision": 0.9697,
+      "recall": 0.9667,
+      "f1": 0.9666
+    },
+    "training_time_sec": null,
+    "system": {
+      "train_time_sec": 4.94,
+      "cpu_peak_percent": 31.2,
+      "ram_peak_gb": 3.74
+    },
+    "leaderboard": [
+      {
+        "model_id": "LightGBMXT",
+        "accuracy": 0.9667,
+        "precision": 0.9697,
+        "recall": 0.9667,
+        "f1": 0.9666
+      },
+      {
+        "model_id": "LightGBM",
+        "accuracy": 0.9333,
+        "precision": 0.9333,
+        "recall": 0.9333,
+        "f1": 0.9333
+      },
+      {
+        "model_id": "RandomForestGini",
+        "accuracy": 0.9333,
+        "precision": 0.9333,
+        "recall": 0.9333,
+        "f1": 0.9333
+      },
+      {
+        "model_id": "RandomForestEntr",
+        "accuracy": 0.9333,
+        "precision": 0.9333,
+        "recall": 0.9333,
+        "f1": 0.9333
+      },
+      {
+        "model_id": "ExtraTreesGini",
+        "accuracy": 0.9667,
+        "precision": 0.9697,
+        "recall": 0.9667,
+        "f1": 0.9666
+      }
+    ]
+  },
+  {
+    "dataset": "Iris.csv",
     "tool": "h2o",
     "task": "classification",
-    "best_model": "GLM_1_AutoML_20_20260110_130021",
+    "best_model": "GLM_1_AutoML_2_20260113_112425",
     "metrics": {
-      "model_id": "GLM_1_AutoML_20_20260110_130021",
+      "model_id": "GLM_1_AutoML_2_20260113_112425",
       "accuracy": 1.0,
       "precision": 1.0,
       "recall": 1.0,
       "f1": 1.0
     },
+    "training_time_sec": null,
     "system": {
-      "train_time_sec": 62.31,
-      "cpu_peak_percent": 52.5,
-      "ram_peak_gb": 4.56
+      "train_time_sec": 63.05,
+      "cpu_peak_percent": 49.6,
+      "ram_peak_gb": 3.78
     },
     "leaderboard": [
       {
-        "model_id": "GLM_1_AutoML_20_20260110_130021",
+        "model_id": "GLM_1_AutoML_2_20260113_112425",
         "accuracy": 1.0,
         "precision": 1.0,
         "recall": 1.0,
         "f1": 1.0
       },
       {
-        "model_id": "XGBoost_lr_search_selection_AutoML_20_20260110_130021_select_grid_model_1",
+        "model_id": "XGBoost_lr_search_selection_AutoML_2_20260113_112425_select_grid_model_1",
         "accuracy": 0.9333,
         "precision": 0.9333,
         "recall": 0.9333,
         "f1": 0.9333
       },
       {
-        "model_id": "StackedEnsemble_BestOfFamily_1_AutoML_20_20260110_130021",
-        "accuracy": 1.0,
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0
-      },
-      {
-        "model_id": "XGBoost_2_AutoML_20_20260110_130021",
+        "model_id": "GBM_grid_1_AutoML_2_20260113_112425_model_18",
         "accuracy": 0.9333,
         "precision": 0.9333,
         "recall": 0.9333,
         "f1": 0.9333
       },
       {
-        "model_id": "XGBoost_grid_1_AutoML_20_20260110_130021_model_26",
+        "model_id": "XGBoost_grid_1_AutoML_2_20260113_112425_model_3",
         "accuracy": 0.9,
         "precision": 0.9024,
         "recall": 0.9,
         "f1": 0.8997
+      },
+      {
+        "model_id": "GBM_grid_1_AutoML_2_20260113_112425_model_31",
+        "accuracy": 0.8667,
+        "precision": 0.875,
+        "recall": 0.8667,
+        "f1": 0.8653
+      }
+    ]
+  },
+  {
+    "dataset": "Iris.csv",
+    "tool": "tpot",
+    "task": "classification",
+    "best_model": "TPOT_Best_Pipeline",
+    "metrics": {
+      "accuracy": 0.9666666666666667,
+      "precision": 0.9696969696969697,
+      "recall": 0.9666666666666667,
+      "f1": 0.9665831244778612
+    },
+    "training_time_sec": null,
+    "system": {
+      "train_time_sec": 17.04,
+      "cpu_peak_percent": 23.7,
+      "ram_peak_gb": 3.83
+    },
+    "leaderboard": [
+      {
+        "model_id": "TPOT_Best_Pipeline",
+        "accuracy": 0.9666666666666667,
+        "precision": 0.9696969696969697,
+        "recall": 0.9666666666666667,
+        "f1": 0.9665831244778612
+      }
+    ]
+  },
+  {
+    "dataset": "Iris.csv",
+    "tool": "flaml",
+    "task": "classification",
+    "best_model": "rf",
+    "metrics": {
+      "accuracy": 0.9333333333333333,
+      "precision": 0.9333333333333332,
+      "recall": 0.9333333333333332,
+      "f1": 0.9333333333333332
+    },
+    "training_time_sec": null,
+    "system": {
+      "train_time_sec": 60.05,
+      "cpu_peak_percent": 18.8,
+      "ram_peak_gb": 3.84
+    },
+    "leaderboard": [
+      {
+        "model_id": "rf",
+        "accuracy": 0.9333333333333333,
+        "precision": 0.9333333333333332,
+        "recall": 0.9333333333333332,
+        "f1": 0.9333333333333332
       }
     ]
   }

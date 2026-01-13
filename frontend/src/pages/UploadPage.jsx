@@ -9,7 +9,7 @@ function UploadPage() {
   const [uploadedFilename, setUploadedFilename] = useState(
     localStorage.getItem("uploadedFilename") || ""
   );
-  const [previewRows, setPreviewRows] = useState([]); // 2D array of rows
+  const [previewRows, setPreviewRows] = useState([]);
   const fileInputRef = useRef(null);
 
   const resetPreview = () => {
@@ -33,14 +33,12 @@ function UploadPage() {
   };
 
   const handleFileChange = (e) => {
-    const selectedFile = e.target.files[0];
-    validateAndSetFile(selectedFile);
+    validateAndSetFile(e.target.files[0]);
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
-    const droppedFile = e.dataTransfer.files[0];
-    validateAndSetFile(droppedFile);
+    validateAndSetFile(e.dataTransfer.files[0]);
   };
 
   const handleDragOver = (e) => {
@@ -48,25 +46,25 @@ function UploadPage() {
   };
 
   const handleBoxClick = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    }
+    fileInputRef.current?.click();
   };
 
   const generatePreview = (csvFile) => {
     const reader = new FileReader();
     reader.onload = (event) => {
       const text = event.target.result;
-      const lines = text.split(/\r?\n/).filter((line) => line.trim() !== "");
-      const limitedLines = lines.slice(0, 21); // header + 20 rows
-      const parsed = limitedLines.map((line) =>
-          line.split(",").map((c) => c.trim())
+      const lines = text
+        .split(/\r?\n/)
+        .filter((line) => line.trim() !== "")
+        .slice(0, 21); // header + 20 rows
+
+      const parsed = lines.map((line) =>
+        line.split(",").map((c) => c.trim())
       );
-      if (parsed.length <= 1){
-         setPreviewRows(parsed);
-         return
-      }
+
+      setPreviewRows(parsed); // ✅ FIX (always set)
     };
+
     reader.readAsText(csvFile);
   };
 
@@ -84,26 +82,26 @@ function UploadPage() {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      if (res.data && res.data.filename) {
+      if (res.data?.filename) {
         localStorage.setItem("uploadedFilename", res.data.filename);
         setUploadedFilename(res.data.filename);
-        setMessage("File uploaded successfully. You can now run H2O AutoML manually.");
+        setMessage("✅ File uploaded successfully. You can now run AutoML.");
       } else {
-        setMessage("⚠️ File uploaded, but unexpected response from server.");
+        setMessage("⚠️ File uploaded, but server response was unexpected.");
       }
     } catch (error) {
       console.error(error);
-      setMessage("Failed to upload file. Please check backend server.");
+      setMessage("❌ Failed to upload file. Is backend running?");
     }
   };
 
   return (
     <div className="w-full">
       <h1 className="text-2xl font-semibold mb-4">Upload Dataset</h1>
+
       <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">
-        Upload your CSV dataset. You&apos;ll see a quick preview of the first 20 rows.
-        After uploading, go to the <span className="font-semibold"> Tools </span>{" "}
-        section to run training manually.
+        Upload a CSV dataset. A preview of the first 20 rows will be shown.
+        After upload, go to <b>Run Tool</b> to start training.
       </p>
 
       {/* Upload Box */}
@@ -123,8 +121,9 @@ function UploadPage() {
           Drop your CSV file here or click to browse
         </p>
         <p className="text-sm text-gray-600 dark:text-gray-400">
-          Currently supported: <span className="font-mono">.csv</span>
+          Supported format: <span className="font-mono">.csv</span>
         </p>
+
         <input
           type="file"
           accept=".csv"
@@ -134,12 +133,8 @@ function UploadPage() {
         />
       </div>
 
-      {/* Status / messages */}
-      {message && (
-        <p className="mt-4 text-sm">
-          {message}
-        </p>
-      )}
+      {/* Status */}
+      {message && <p className="mt-4 text-sm">{message}</p>}
 
       {uploadedFilename && (
         <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
@@ -152,7 +147,9 @@ function UploadPage() {
       <div className="mt-6">
         <button
           onClick={uploadToServer}
-          className="px-6 py-2 rounded-full bg-black text-white text-sm hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200 transition"
+          className="px-6 py-2 rounded-full bg-black text-white text-sm
+                     hover:bg-gray-800 dark:bg-white dark:text-black
+                     dark:hover:bg-gray-200 transition"
         >
           Upload to Server
         </button>
@@ -161,9 +158,8 @@ function UploadPage() {
       {/* Dataset Preview */}
       {previewRows.length > 0 && (
         <div className="mt-8">
-          <h2 className="text-xl font-semibold mb-3">
-            Dataset Preview
-          </h2>
+          <h2 className="text-xl font-semibold mb-3">Dataset Preview</h2>
+
           <div className="overflow-auto border rounded-lg dark:border-gray-700 max-h-96">
             <table className="min-w-full text-xs">
               <tbody>
@@ -198,3 +194,4 @@ function UploadPage() {
 }
 
 export default UploadPage;
+

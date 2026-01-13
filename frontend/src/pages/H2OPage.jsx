@@ -2,6 +2,8 @@ import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
+const API_BASE_URL = "http://127.0.0.1:8000";
+
 export default function H2OPage({ setLastResult }) {
   const navigate = useNavigate();
 
@@ -17,21 +19,30 @@ export default function H2OPage({ setLastResult }) {
   const logRef = useRef(null);
   const resultRef = useRef(null);
 
+  /* Auto-scroll logs */
   useEffect(() => {
     if (logRef.current) {
       logRef.current.scrollTop = logRef.current.scrollHeight;
     }
   }, [logMessages]);
 
+  /* Load datasets */
   useEffect(() => {
     axios
-      .get("http://127.0.0.1:8000/list_files")
+      .get(`${API_BASE_URL}/list_files`)
       .then((res) => setFiles(res.data.files || []))
       .catch(() => setFiles([]));
   }, []);
 
+  const getWebSocketUrl = () => {
+    return "ws://127.0.0.1:8000/ws/automl";
+  };
+
   const runAutoML = () => {
-    if (!selectedFile) return;
+    if (!selectedFile || !selectedTool) {
+      alert("Select dataset and tool");
+      return;
+    }
 
     setLoading(true);
     setLogMessages(["[system] Starting AutoML..."]);
@@ -39,26 +50,22 @@ export default function H2OPage({ setLastResult }) {
     setSystemStats(null);
     resultRef.current = null;
 
-    const wsUrl =
-      selectedTool === "h2o"
-        ? "ws://127.0.0.1:8000/ws/automl"
-        : selectedTool === "tpot"
-        ? "ws://127.0.0.1:8000/ws/tpot"
-        : selectedTool === "flaml"
-        ? "ws://127.0.0.1:8000/ws/flaml"
-        : "ws://127.0.0.1:8000/ws/autogluon";
-
-    const ws = new WebSocket(wsUrl);
+    const ws = new WebSocket(getWebSocketUrl());
 
     ws.onopen = () => {
-      ws.send(JSON.stringify({ filename: selectedFile }));
+      ws.send(
+        JSON.stringify({
+          filename: selectedFile,
+          tool: selectedTool,
+        })
+      );
     };
 
     ws.onmessage = (e) => {
       const msg = JSON.parse(e.data);
 
       if (msg.type === "log") {
-        setLogMessages((p) => [...p, msg.message]);
+        setLogMessages((prev) => [...prev, msg.message]);
       }
 
       if (msg.type === "system_info") {
@@ -78,9 +85,13 @@ export default function H2OPage({ setLastResult }) {
         setLoading(false);
 
         if (resultRef.current) {
-          // ✅ THIS IS THE CRITICAL FIX
           setLastResult(resultRef.current);
-          navigate("/results");
+
+          navigate(
+            `/results?dataset=${encodeURIComponent(
+              selectedFile
+            )}&tool=${encodeURIComponent(selectedTool)}`
+          );
         }
       }
     };
@@ -95,6 +106,7 @@ export default function H2OPage({ setLastResult }) {
     <section className="bg-white dark:bg-gray-900 rounded-xl shadow p-6 h-full">
       <h2 className="text-xl font-semibold mb-4">Select & Run AutoML</h2>
 
+      {/* TOOL SELECT */}
       <select
         value={selectedTool}
         onChange={(e) => setSelectedTool(e.target.value)}
@@ -106,6 +118,7 @@ export default function H2OPage({ setLastResult }) {
         <option value="flaml">FLAML AutoML</option>
       </select>
 
+      {/* DATASET SELECT */}
       <select
         value={selectedFile}
         onChange={(e) => setSelectedFile(e.target.value)}
@@ -113,10 +126,13 @@ export default function H2OPage({ setLastResult }) {
       >
         <option value="">-- Select Dataset --</option>
         {files.map((f) => (
-          <option key={f} value={f}>{f}</option>
+          <option key={f} value={f}>
+            {f}
+          </option>
         ))}
       </select>
 
+      {/* RUN BUTTON */}
       <button
         onClick={runAutoML}
         disabled={loading}
@@ -125,10 +141,12 @@ export default function H2OPage({ setLastResult }) {
         {loading ? "Running..." : "Run AutoML"}
       </button>
 
+      {/* LOGS + SYSTEM STATS */}
       <div className="mt-6">
         <h3 className="text-sm font-semibold mb-2">Live Logs</h3>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 items-start">
+          {/* LOG WINDOW */}
           <div
             ref={logRef}
             className="lg:col-span-3 font-mono text-sm rounded-md border
@@ -141,10 +159,13 @@ export default function H2OPage({ setLastResult }) {
             ))}
           </div>
 
-          <div className="font-mono text-sm rounded-md border
-                          bg-gray-100 dark:bg-black
-                          text-green-600 dark:text-green-400
-                          h-72 px-3 py-2">
+          {/* SYSTEM INFO */}
+          <div
+            className="font-mono text-sm rounded-md border
+                       bg-gray-100 dark:bg-black
+                       text-green-600 dark:text-green-400
+                       h-72 px-3 py-2"
+          >
             {systemStats ? (
               <>
                 <div>CPU : {systemStats.cpu_usage_percent}%</div>

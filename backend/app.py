@@ -2,6 +2,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import os
+import time
 
 from backend.orchestrator import run_pipeline
 from backend.compare.registry import load_results
@@ -47,17 +48,53 @@ def list_files():
 async def run_automl(req: RunRequest):
     """
     Select & Run AutoML (single tool, REST fallback)
+    Returns structured result for frontend
     """
-    result = None
+    start_time = time.time()
+    raw_result = None
 
     async for msg in run_pipeline(req.dataset, req.tool):
-        if msg["type"] == "result":
-            result = msg["data"]
+        if msg.get("type") == "result":
+            raw_result = msg.get("data")
 
-    if not result:
+    if not raw_result:
         raise HTTPException(status_code=500, detail="AutoML run failed")
 
-    return result
+    # -------- NORMALIZE RESULT --------
+    training_time = round(time.time() - start_time, 2)
+
+    models = raw_result.get("models", [])
+    leaderboard = []
+
+    for m in models:
+        leaderboard.append({
+            "model": m.get("name", "unknown"),
+            "accuracy": m.get("accuracy", 0)
+        })
+
+    leaderboard = sorted(
+        leaderboard,
+        key=lambda x: x["accuracy"],
+        reverse=True
+    )
+
+    response = {
+        "run_id": raw_result.get("run_id", f"{req.tool}-{int(start_time)}"),
+        "dataset": req.dataset,
+        "tool": req.tool,
+        "status": "COMPLETED",
+
+        "metrics": {
+            "accuracy": raw_result.get("best_accuracy", 0),
+            "training_time_sec": training_time,
+            "models_trained": len(models)
+        },
+
+        "leaderboard": leaderboard[:5],
+        "loss_curve": raw_result.get("loss_curve", [])
+    }
+
+    return response
 
 
 @app.post("/compare")
@@ -124,3 +161,10 @@ async def ws_automl(websocket: WebSocket):
 
     except WebSocketDisconnect:
         pass
+
+@app.get("/benchmarks")
+def get_benchmarks():
+    """
+    Return all saved benchmark results
+    """
+    return load_results()
