@@ -26,6 +26,8 @@ import Instruction from "./pages/Instruction";
 import SystemLogs from "./pages/SystemLogs";
 import BenchmarkPage from "./pages/BenchmarkPage";
 
+import AccessDenied from "./pages/AccessDenied";
+
 // Hook for Auth Status
 const useAuth = () => {
   const token = localStorage.getItem("automl_token");
@@ -45,7 +47,7 @@ const PublicRoute = ({ children }) => {
 const ProtectedRoute = ({ children }) => {
   const isAuth = useAuth();
   if (!isAuth) {
-    return <Navigate to="/login" replace />;
+    return <AccessDenied />;
   }
   return children;
 };
@@ -101,6 +103,7 @@ function AppShell({ lastResult, setLastResult }) {
 
             <Route path="/projects" element={<Projects />} />
             <Route path="/experiments" element={<Experiments />} />
+            <Route path="/experiments/:projectId" element={<Experiments />} />
             <Route path="/reports" element={<Reports />} />
             <Route path="/chat" element={<Chat />} />
             <Route path="/run-experiment" element={<RunExperiment />} />

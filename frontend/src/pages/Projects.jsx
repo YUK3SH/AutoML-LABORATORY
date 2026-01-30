@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Card from '../components/Card';
-import Badge from '../components/Badge';
+import ProjectCard from '../components/ProjectCard';
 import Icon from '../components/Icons';
 import MockData from '../utils/MockData';
 
@@ -10,7 +9,17 @@ export default function Projects() {
     const [projects, setProjects] = useState([]);
 
     useEffect(() => {
-        setProjects(MockData.getProjects());
+        const rawProjects = MockData.getProjects();
+        // Hydrate with dynamic stats
+        const hydrated = rawProjects.map(p => {
+            const stats = MockData.getProjectStats(p.id);
+            return {
+                ...p,
+                count: stats.count,
+                bestAccuracy: stats.bestAccuracy
+            };
+        });
+        setProjects(hydrated);
     }, []);
 
     const hasProjects = projects.length > 0;
@@ -59,7 +68,7 @@ export default function Projects() {
                     {/* Add New Card (First Item) */}
                     <div
                         onClick={() => navigate('/run-experiment')}
-                        className="border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-xl p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:border-blue-400 dark:hover:border-blue-500/50 hover:bg-gray-50 dark:hover:bg-gray-800/20 transition-all group animate-fade-in-up md:min-h-[240px]"
+                        className="border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-xl p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:border-blue-400 dark:hover:border-blue-500/50 hover:bg-gray-50 dark:hover:bg-gray-800/20 transition-all group animate-fade-in-up md:min-h-[200px]"
                     >
                         <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400 group-hover:text-blue-500 group-hover:bg-blue-50 dark:group-hover:bg-blue-900/20 transition-colors mb-4">
                             <Icon name="plus" size={24} />
@@ -68,35 +77,11 @@ export default function Projects() {
                     </div>
 
                     {projects.map((project, index) => (
-                        <div
-                            key={project.id}
-                            onClick={() => navigate('/experiments')}
-                            className="cursor-pointer group animate-fade-in-up"
-                            style={{ animationDelay: `${index * 50}ms` }}
-                        >
-                            <Card className="h-full hover:shadow-xl hover:shadow-blue-900/5 hover:-translate-y-1 hover:border-blue-500/30 dark:hover:border-blue-500/50 transition-all duration-300">
-                                <div className="flex justify-between items-start mb-4">
-                                    <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl text-blue-600 dark:text-blue-400 group-hover:bg-blue-100 dark:group-hover:bg-blue-800/30 transition-colors">
-                                        <Icon name="folder" size={24} />
-                                    </div>
-                                    <Badge status={project.status || "Active"} />
-                                </div>
-
-                                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                                    {project.name}
-                                </h3>
-                                <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-6 bg-gray-100 dark:bg-gray-800/50 inline-block px-2 py-1 rounded">
-                                    {project.type}
-                                </p>
-
-                                <div className="flex items-center justify-between text-xs text-gray-400 dark:text-gray-500 pt-4 border-t border-gray-100 dark:border-gray-800/50">
-                                    <span className="flex items-center gap-1">
-                                        <Icon name="beaker" size={12} />
-                                        {project.count} experiments
-                                    </span>
-                                    <span>{project.updated}</span>
-                                </div>
-                            </Card>
+                        <div key={project.id} style={{ animationDelay: `${index * 50}ms` }}>
+                            <ProjectCard
+                                project={project}
+                                onClick={() => navigate(`/experiments/${project.id}`)}
+                            />
                         </div>
                     ))}
                 </div>

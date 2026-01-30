@@ -20,12 +20,12 @@ const MockData = {
     addProject: (project) => {
         const projects = MockData.getProjects();
         // Check if project exists or update logic could go here
-        // For now, we assume every run creates a "Project" entry or updates one
         const newProject = {
-            id: Date.now(),
-            updated: new Date().toLocaleDateString(),
+            id: Date.now().toString(),
+            created: new Date().toISOString(),
+            updated: new Date().toISOString(),
             status: "Active",
-            count: 1,
+            domain: project.domain || "General",
             ...project
         };
         const updated = [newProject, ...projects];
@@ -46,33 +46,24 @@ const MockData = {
         const results = MockData.generateDeterministicResults(experiment.model);
 
         const newExperiment = {
-            id: Date.now(),
+            id: Date.now().toString(),
             date: new Date().toISOString(),
             status: "Running",
+            projectId: experiment.projectId, // Strict linking
             ...experiment,
             ...results
         };
         const updated = [newExperiment, ...experiments];
         localStorage.setItem(KEYS.EXPERIMENTS, JSON.stringify(updated));
 
-        // Also ensure a corresponding project exists or update it
-        // Simplified logic: If project name doesn't exist in project list, add it. 
-        // Real logic would be more complex.
-        const projects = MockData.getProjects();
-        const existingProj = projects.find(p => p.name === experiment.project);
-
-        if (existingProj) {
-            // Update existing project count
-            existingProj.count += 1;
-            existingProj.updated = "Just now";
-            localStorage.setItem(KEYS.PROJECTS, JSON.stringify(projects));
-        } else {
-            // Create new project entry
-            MockData.addProject({
-                name: experiment.project,
-                type: "AutoML", // Generic type
-                count: 1
-            });
+        // Update Project Timestamp
+        if (experiment.projectId) {
+            const projects = MockData.getProjects();
+            const projIndex = projects.findIndex(p => p.id === experiment.projectId);
+            if (projIndex !== -1) {
+                projects[projIndex].updated = new Date().toISOString();
+                localStorage.setItem(KEYS.PROJECTS, JSON.stringify(projects));
+            }
         }
 
         return newExperiment;
@@ -110,6 +101,22 @@ const MockData = {
     },
 
     // --- Helpers ---
+    getProjectStats: (projectId) => {
+        const experiments = MockData.getExperiments().filter(e => e.projectId === projectId);
+        if (experiments.length === 0) return { count: 0, bestAccuracy: 'N/A' };
+
+        // Calculate Best Accuracy
+        const accuracies = experiments
+            .map(e => parseFloat(e.metrics?.accuracy || 0));
+
+        const best = Math.max(...accuracies);
+
+        return {
+            count: experiments.length,
+            bestAccuracy: best > 0 ? (best * 100).toFixed(1) + '%' : 'N/A'
+        };
+    },
+
     generateDeterministicResults: (modelName) => {
         const seed = modelName.length;
         const baseAcc = 0.85 + (seed % 10) * 0.01;
@@ -121,10 +128,23 @@ const MockData = {
         }));
 
         const leaderboard = [
-            { model_id: `${modelName}_Best`, accuracy: (baseAcc + 0.02).toFixed(4), loss: 0.12, latency_ms: 45 },
-            { model_id: `${modelName}_Ensemble`, accuracy: baseAcc.toFixed(4), loss: 0.15, latency_ms: 120 },
-            { model_id: "XGBoost_Baseline", accuracy: (baseAcc - 0.05).toFixed(4), loss: 0.22, latency_ms: 30 },
-            { model_id: "GLM_v2", accuracy: (baseAcc - 0.12).toFixed(4), loss: 0.35, latency_ms: 10 },
+            { model_id: `${modelName}_Best`, accuracy: (baseAcc + 0.02).toFixed(4), precision: (baseAcc + 0.01).toFixed(4), recall: (baseAcc - 0.01).toFixed(4), f1: (baseAcc + 0.015).toFixed(4), training_time_sec: 124.5, loss: 0.12, latency_ms: 45 },
+            { model_id: `${modelName}_Ensemble`, accuracy: baseAcc.toFixed(4), precision: (baseAcc - 0.01).toFixed(4), recall: (baseAcc + 0.01).toFixed(4), f1: baseAcc.toFixed(4), training_time_sec: 156.2, loss: 0.15, latency_ms: 120 },
+            { model_id: "XGBoost_Baseline", accuracy: (baseAcc - 0.05).toFixed(4), precision: (baseAcc - 0.06).toFixed(4), recall: (baseAcc - 0.04).toFixed(4), f1: (baseAcc - 0.05).toFixed(4), training_time_sec: 45.0, loss: 0.22, latency_ms: 30 },
+            { model_id: "GLM_v2", accuracy: (baseAcc - 0.12).toFixed(4), precision: (baseAcc - 0.10).toFixed(4), recall: (baseAcc - 0.15).toFixed(4), f1: (baseAcc - 0.13).toFixed(4), training_time_sec: 10.5, loss: 0.35, latency_ms: 10 },
+        ];
+
+        // Generate aligned confusion matrix
+        // Assuming 2 classes for simplicity: 0 and 1
+        const totalSamples = 1000;
+        const tp = Math.floor(totalSamples * (baseAcc + 0.02) / 2);
+        const tn = Math.floor(totalSamples * (baseAcc + 0.02) / 2);
+        const fp = Math.floor((totalSamples - tp - tn) / 2);
+        const fn = totalSamples - tp - tn - fp;
+
+        const confusion_matrix = [
+            [tn, fp],
+            [fn, tp]
         ];
 
         return {
@@ -139,7 +159,8 @@ const MockData = {
                 ram_peak: (2 + (seed % 6)).toFixed(2)
             },
             loss_curve: lossCurve,
-            leaderboard: leaderboard
+            leaderboard: leaderboard,
+            confusion_matrix: confusion_matrix
         };
     },
 

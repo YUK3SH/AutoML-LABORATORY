@@ -2,12 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MockData from '../utils/MockData';
 import Icon from '../components/Icons';
+import DatasetUpload from '../components/DatasetUpload';
 
 export default function RunExperiment() {
     const navigate = useNavigate();
 
     // Step Management
     const [step, setStep] = useState(1);
+    const [showUploadModal, setShowUploadModal] = useState(false);
 
     // Form Data
     const [expName, setExpName] = useState("");
@@ -22,12 +24,9 @@ export default function RunExperiment() {
 
     // --- Initialization ---
     useEffect(() => {
-        // Load persist state
+        // Load persist state (Name only, simplified)
         const savedName = MockData.getDraftExperimentName();
-        const savedDataset = MockData.getDraftProject();
-
         if (savedName) setExpName(savedName);
-        if (savedDataset) setDataset(savedDataset);
     }, []);
 
     // Scroll logs to bottom
@@ -42,8 +41,10 @@ export default function RunExperiment() {
         MockData.setDraftExperimentName(val);
     };
 
-    const handleSelectDataset = () => {
-        navigate('/upload');
+    const handleUploadComplete = (filename) => {
+        setDataset(filename);
+        setShowUploadModal(false);
+        // Auto-save draft project name if needed, or just keep in state
     };
 
     // --- Execution Logic ---
@@ -59,6 +60,8 @@ export default function RunExperiment() {
         setLogs([]);
 
         addLog("Initializing execution environment...", "system");
+
+        const tools = getTools();
 
         const sequence = [
             { t: 1000, p: 5, msg: "Checking system resources [CPU/GPU]...", type: "system" },
@@ -88,12 +91,15 @@ export default function RunExperiment() {
     };
 
     const finishExperiment = () => {
+        const tools = getTools();
         setTimeout(() => {
             // Save final valid result
             MockData.addExperiment({
                 name: expName,
-                project: dataset,
+                project: dataset, // Simplified: Project Name = Dataset Name for this flow
+                projectId: Date.now().toString(), // Create new implicit project ID for this run
                 model: tools.find(t => t.id === selectedTool).name,
+                dataset: dataset,
                 accuracy: "94.1%",
                 duration: "24s",
                 status: "Completed"
@@ -101,21 +107,23 @@ export default function RunExperiment() {
 
             MockData.clearDraft();
             setIsRunning(false);
-            navigate('/experiments');
+            navigate('/experiments'); // Will go to global view, ideally should go to project view but logical for now
         }, 2000);
     };
 
-    const tools = [
+    const getTools = () => [
         { id: 'h2o', name: 'H2O AutoML', desc: 'Best for tabular data', recommended: true },
         { id: 'autogluon', name: 'AutoGluon', desc: 'High accuracy ensemble' },
         { id: 'tpot', name: 'TPOT', desc: 'Genetic programming' },
         { id: 'flaml', name: 'FLAML', desc: 'Lightweight & fast' },
     ];
 
+    const tools = getTools();
+
     // --- Render Steps ---
 
     if (step === 3) {
-        // EXECUTION CONSOLE
+        // EXECUTION CONSOLE (Unchanged mostly)
         return (
             <div className="max-w-5xl mx-auto h-[80vh] flex flex-col animate-fade-in relative">
                 {/* Header */}
@@ -177,7 +185,7 @@ export default function RunExperiment() {
     }
 
     return (
-        <div className="max-w-4xl mx-auto space-y-8 animate-fade-in relative">
+        <div className="max-w-4xl mx-auto space-y-8 animate-fade-in relative z-0">
             <div className="flex items-center gap-4 mb-4">
                 <button onClick={() => navigate('/projects')} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors text-gray-500">
                     <Icon name="chevron" className="rotate-180" size={20} />
@@ -233,11 +241,11 @@ export default function RunExperiment() {
                                             <p className="text-xs text-green-600 dark:text-green-400">Ready for training</p>
                                         </div>
                                     </div>
-                                    <button onClick={handleSelectDataset} className="text-sm text-gray-500 underline hover:text-cyan-600">Change</button>
+                                    <button onClick={() => setShowUploadModal(true)} className="text-sm text-gray-500 underline hover:text-cyan-600">Change</button>
                                 </div>
                             ) : (
                                 <div
-                                    onClick={handleSelectDataset}
+                                    onClick={() => setShowUploadModal(true)}
                                     className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:border-cyan-500 transition-all group"
                                 >
                                     <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center text-gray-400 group-hover:text-cyan-500 mb-2 transition-colors">
@@ -324,6 +332,20 @@ export default function RunExperiment() {
                     </button>
                 )}
             </div>
+
+            {/* Upload Modal Overlay */}
+            {showUploadModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+                    <div className="bg-white dark:bg-darkpanel w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden border border-gray-200 dark:border-gray-700 animate-scale-in">
+                        <div className="p-8">
+                            <DatasetUpload
+                                onUploadComplete={handleUploadComplete}
+                                onCancel={() => setShowUploadModal(false)}
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
