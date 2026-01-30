@@ -1,0 +1,15 @@
+fastapi>=0.109.0
+uvicorn>=0.27.0
+python-multipart>=0.0.7
+pandas>=2.2.0
+numpy>=1.26.0,<2.0.0
+scikit-learn>=1.4.0
+matplotlib>=3.8.0
+seaborn>=0.13.0
+# ML Libraries (Unpinned to allow pip to find best match for Python version)
+xgboost
+lightgbm
+flaml
+h2o
+tpot
+autogluon.tabular
