@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Icon from './Icons';
 import HelpModal from './HelpModal';
+import UserMenu from './UserMenu';
 
 // A small functional component for icon buttons
 const IconButton = ({ icon, onClick, badge, className }) => (
@@ -22,12 +23,15 @@ const Topbar = ({ theme, openSettings }) => {
     <>
       <header className="bg-white dark:bg-darkpanel border-b border-gray-200 dark:border-gray-800 h-16 px-6 flex items-center justify-between transition-colors duration-300 z-20">
         {/* Left: Brand / Breadcrumb placeholder */}
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-cyan-500/20">
+        <div
+          onClick={() => window.location.href = '/'}
+          className="flex items-center gap-3 cursor-pointer group"
+        >
+          <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-cyan-500/20 group-hover:shadow-cyan-500/40 transition-shadow">
             <span className="text-white font-bold text-xs">AL</span>
           </div>
           <h1 className="text-lg font-bold text-gray-900 dark:text-white tracking-tight">
-            AutoML <span className="text-cyan-600 dark:text-cyan-400 font-light">Laboratory</span>
+            AutoML <span className="text-cyan-600 dark:text-cyan-400 font-bold">LAB</span>
           </h1>
         </div>
 
@@ -46,11 +50,9 @@ const Topbar = ({ theme, openSettings }) => {
           {/* Settings */}
           <IconButton icon="settings" onClick={openSettings} />
 
-          {/* User Menu Trigger (Simple for now, Sidebar handles main profile) */}
+          {/* User Menu Trigger (Auth & Identity Anchor) */}
           <div className="ml-2 pl-4 border-l border-gray-200 dark:border-gray-700">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 flex items-center justify-center cursor-pointer hover:ring-2 ring-offset-2 ring-cyan-500 dark:ring-offset-darkpanel transition-all">
-              <Icon name="user" size={16} className="text-gray-600 dark:text-gray-300" />
-            </div>
+            <UserMenu />
           </div>
         </div>
       </header>

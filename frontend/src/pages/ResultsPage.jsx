@@ -237,10 +237,9 @@ export default function ResultsPage() {
                 <th className="px-6 py-4 w-16 text-center">Rank</th>
                 <th className="px-6 py-4">Model Name</th>
                 <th className="px-6 py-4 font-bold text-cyan-600">Accuracy</th>
-                <th className="px-6 py-4">Precision</th>
-                <th className="px-6 py-4">Recall</th>
                 <th className="px-6 py-4">F1 Score</th>
-                <th className="px-6 py-4 text-right">Train Time</th>
+                <th className="px-6 py-4">Precision</th>
+                <th className="px-6 py-4 text-right">Training Time</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
@@ -259,10 +258,9 @@ export default function ResultsPage() {
                   <td className="px-6 py-4 font-bold text-gray-900 dark:text-white text-lg">
                     {(parseFloat(model.accuracy) * 100).toFixed(2)}%
                   </td>
-                  <td className="px-6 py-4 text-gray-600 dark:text-gray-300">{(parseFloat(model.precision || 0) * 100).toFixed(1)}%</td>
-                  <td className="px-6 py-4 text-gray-600 dark:text-gray-300">{(parseFloat(model.recall || 0) * 100).toFixed(1)}%</td>
-                  <td className="px-6 py-4 text-gray-600 dark:text-gray-300">{(parseFloat(model.f1 || 0) * 100).toFixed(1)}%</td>
-                  <td className="px-6 py-4 text-right font-mono text-gray-500 dark:text-gray-400">{model.training_time_sec || model.latency_ms + ' ms'}</td>
+                  <td className="px-6 py-4 text-gray-600 dark:text-gray-300">{(parseFloat(model.f1 || 0) * 100).toFixed(2)}%</td>
+                  <td className="px-6 py-4 text-gray-600 dark:text-gray-300">{(parseFloat(model.precision || 0) * 100).toFixed(2)}%</td>
+                  <td className="px-6 py-4 text-right font-mono text-gray-500 dark:text-gray-400">{model.training_time_sec ? model.training_time_sec + 's' : model.latency_ms + ' ms'}</td>
                 </tr>
               ))}
             </tbody>

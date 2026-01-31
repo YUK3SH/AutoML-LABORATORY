@@ -7,26 +7,23 @@ import SettingsModal from "./components/SettingsModal";
 
 // New Pages
 import { LoginPage, SignupPage } from "./pages/Auth";
+import JarvisPage from "./pages/JarvisPage";
 import Dashboard from "./pages/Dashboard";
 import Projects from "./pages/Projects";
 import Experiments from "./pages/Experiments";
 import Reports from "./pages/Reports";
 import Chat from "./pages/Chat";
 import LandingPage from "./pages/LandingPage";
-import LearnMore from "./pages/LearnMore";
 import RunExperiment from "./pages/RunExperiment";
 import ResultsPage from "./pages/ResultsPage";
 import ComparePage from "./pages/ComparePage";
 
 // Legacy Pages
-import HomePage from "./pages/HomePage";
 import UploadPage from "./pages/UploadPage";
 import H2OPage from "./pages/H2OPage";
 import Instruction from "./pages/Instruction";
 import SystemLogs from "./pages/SystemLogs";
 import BenchmarkPage from "./pages/BenchmarkPage";
-
-import AccessDenied from "./pages/AccessDenied";
 
 // Hook for Auth Status
 const useAuth = () => {
@@ -34,11 +31,11 @@ const useAuth = () => {
   return !!token;
 };
 
-// Wrapper for Public Routes (redirect to Dashboard if logged in)
+// Wrapper for Public Routes (redirect to Jarvis if logged in)
 const PublicRoute = ({ children }) => {
   const isAuth = useAuth();
   if (isAuth) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/jarvis" replace />;
   }
   return children;
 };
@@ -47,15 +44,14 @@ const PublicRoute = ({ children }) => {
 const ProtectedRoute = ({ children }) => {
   const isAuth = useAuth();
   if (!isAuth) {
-    return <AccessDenied />;
+    return <Navigate to="/login" replace />;
   }
   return children;
 };
 
-function AppShell({ lastResult, setLastResult }) {
-  const [theme, setTheme] = useState("light"); // Default to light per requirements
+function AppShell() {
+  const [theme, setTheme] = useState("light");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const location = useLocation();
 
   useEffect(() => {
     const saved = localStorage.getItem("theme") || "light";
@@ -95,31 +91,32 @@ function AppShell({ lastResult, setLastResult }) {
       <div className="flex flex-1 overflow-hidden">
         <Sidebar />
 
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 overflow-y-auto p-6 bg-gray-50 dark:bg-black main-content-area">
           <Routes>
-            {/* New Core Pages */}
+            {/* Core Workflow */}
+            <Route path="/jarvis" element={<JarvisPage />} />
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-
             <Route path="/projects" element={<Projects />} />
+
+            {/* Project Isolation & Experiment Routes */}
             <Route path="/experiments" element={<Experiments />} />
             <Route path="/experiments/:projectId" element={<Experiments />} />
+
             <Route path="/reports" element={<Reports />} />
             <Route path="/chat" element={<Chat />} />
             <Route path="/run-experiment" element={<RunExperiment />} />
             <Route path="/results" element={<ResultsPage />} />
             <Route path="/compare" element={<ComparePage />} />
 
-            {/* Legacy Routes (Preserved) */}
-            <Route path="/home-legacy" element={<HomePage />} />
+            {/* Legacy Routes (Preserved but isolated) */}
             <Route path="/upload" element={<UploadPage />} />
-            <Route path="/h2o" element={<H2OPage setLastResult={setLastResult} />} />
-            {/* Legacy ResultsPage removed to favor new dynamic one */}
+            <Route path="/h2o" element={<H2OPage />} />
             <Route path="/benchmark" element={<BenchmarkPage />} />
             <Route path="/instruction" element={<Instruction />} />
             <Route path="/system-logs" element={<SystemLogs />} />
 
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            {/* Fallback for protected routes */}
+            <Route path="*" element={<Navigate to="/jarvis" replace />} />
           </Routes>
         </main>
       </div>
@@ -128,23 +125,23 @@ function AppShell({ lastResult, setLastResult }) {
 }
 
 export default function App() {
-  const [lastResult, setLastResult] = useState(null);
-
   return (
     <Router>
       <Routes>
-        {/* Public Routes */}
+        {/* Public Routes (Safe from Auth) */}
         <Route path="/" element={<PublicRoute><LandingPage /></PublicRoute>} />
-        <Route path="/learn-more" element={<LearnMore />} />
+        {/* LearnMore, About, Pricing now sections in LandingPage */}
+
+        {/* Auth Routes */}
         <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
         <Route path="/signup" element={<PublicRoute><SignupPage /></PublicRoute>} />
 
-        {/* Protected App Shell */}
+        {/* Protected App Shell for everything else */}
         <Route
           path="/*"
           element={
             <ProtectedRoute>
-              <AppShell lastResult={lastResult} setLastResult={setLastResult} />
+              <AppShell />
             </ProtectedRoute>
           }
         />

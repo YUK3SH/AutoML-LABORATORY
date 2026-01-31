@@ -1,11 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import MockData from '../utils/MockData';
 import Icon from '../components/Icons';
 import DatasetUpload from '../components/DatasetUpload';
 
 export default function RunExperiment() {
     const navigate = useNavigate();
+    const location = useLocation();
+
+    // Context from navigation (Project Isolation)
+    const contextProjectId = location.state?.projectId || null;
+    const contextProjectName = location.state?.projectName || null;
 
     // Step Management
     const [step, setStep] = useState(1);
@@ -94,10 +99,27 @@ export default function RunExperiment() {
         const tools = getTools();
         setTimeout(() => {
             // Save final valid result
+            const finalProjectId = contextProjectId || Date.now().toString();
+            // If we created a new ad-hoc project, we might want to register it in MockData too so it's not orphaned?
+            // For now, MockData.addExperiment handles the linking. 
+            // If contextProjectId is null, MockData might need to know to create a "Default Project" or similar?
+            // The current implementation of addProject in MockData doesn't auto-create from addExperiment.
+            // Let's assume for "Quick Run" (no context) we create a new Project entry too to be safe.
+
+            if (!contextProjectId) {
+                MockData.addProject({
+                    id: finalProjectId,
+                    name: dataset, // Use dataset name as project name
+                    status: 'Active',
+                    description: 'Auto-generated from Quick Experiment'
+                });
+            }
+
             MockData.addExperiment({
                 name: expName,
-                project: dataset, // Simplified: Project Name = Dataset Name for this flow
-                projectId: Date.now().toString(), // Create new implicit project ID for this run
+                // If context exists, use that project name, else dataset name
+                project: contextProjectName || dataset,
+                projectId: finalProjectId, // Strict linking
                 model: tools.find(t => t.id === selectedTool).name,
                 dataset: dataset,
                 accuracy: "94.1%",
@@ -107,7 +129,13 @@ export default function RunExperiment() {
 
             MockData.clearDraft();
             setIsRunning(false);
-            navigate('/experiments'); // Will go to global view, ideally should go to project view but logical for now
+
+            // Redirect Logic
+            if (contextProjectId) {
+                navigate(`/experiments/${contextProjectId}`);
+            } else {
+                navigate('/experiments');
+            }
         }, 2000);
     };
 
@@ -187,10 +215,15 @@ export default function RunExperiment() {
     return (
         <div className="max-w-4xl mx-auto space-y-8 animate-fade-in relative z-0">
             <div className="flex items-center gap-4 mb-4">
-                <button onClick={() => navigate('/projects')} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors text-gray-500">
+                <button onClick={() => navigate(-1)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors text-gray-500">
                     <Icon name="chevron" className="rotate-180" size={20} />
                 </button>
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">New Experiment</h1>
+                <div className="flex flex-col">
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">New Experiment</h1>
+                    {contextProjectName && (
+                        <p className="text-sm text-gray-500">Project: <span className="font-bold">{contextProjectName}</span></p>
+                    )}
+                </div>
             </div>
 
             {/* Stepper */}

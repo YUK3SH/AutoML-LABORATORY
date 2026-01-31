@@ -41,11 +41,9 @@ const AuthContainer = ({ title, subtitle, children }) => (
                 </div>
 
                 <div className="space-y-4 mb-8">
-                    <SocialButton provider="google" onClick={() => { }} />
-                    <div className="grid grid-cols-2 gap-4">
-                        <SocialButton provider="github" onClick={() => { }} />
-                        <SocialButton provider="linkedin" onClick={() => { }} />
-                    </div>
+                    <SocialButton provider="google" onClick={() => { }} label="Continue with Google" />
+                    <SocialButton provider="github" onClick={() => { }} label="Continue with GitHub" />
+                    <SocialButton provider="linkedin" onClick={() => { }} label="Continue with LinkedIn" />
                 </div>
 
                 <div className="relative mb-8">
@@ -53,7 +51,7 @@ const AuthContainer = ({ title, subtitle, children }) => (
                         <div className="w-full border-t border-gray-800"></div>
                     </div>
                     <div className="relative flex justify-center text-sm">
-                        <span className="px-4 bg-black text-gray-500 uppercase tracking-widest text-xs">Or continue with</span>
+                        <span className="px-4 bg-black text-gray-500 uppercase tracking-widest text-xs">Or continue with email</span>
                     </div>
                 </div>
 
@@ -66,7 +64,7 @@ const AuthContainer = ({ title, subtitle, children }) => (
 
 export function LoginPage() {
     const navigate = useNavigate();
-    const [email, setEmail] = useState('');
+    const [identifier, setIdentifier] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
 
@@ -75,11 +73,13 @@ export function LoginPage() {
         setLoading(true);
         // Mock Auth
         setTimeout(() => {
-            if (email && password) {
+            if (identifier && password) {
                 localStorage.setItem('automl_token', 'mock-token-123');
-                localStorage.setItem('automl_user', JSON.stringify({ email, name: email.split('@')[0] }));
+                // Infer name from identifier (email or username)
+                const name = identifier.includes('@') ? identifier.split('@')[0] : identifier;
+                localStorage.setItem('automl_user', JSON.stringify({ email: identifier.includes('@') ? identifier : 'user@example.com', name: name }));
                 setLoading(false);
-                navigate('/dashboard');
+                navigate('/jarvis');
             } else {
                 setLoading(false);
             }
@@ -89,15 +89,33 @@ export function LoginPage() {
     return (
         <AuthContainer title="Welcome back" subtitle="Sign in to your account">
             <form onSubmit={handleSubmit} className="space-y-5">
-                <Input label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="name@company.com" className="bg-gray-900 border-gray-800 text-white focus:border-cyan-500" labelClassName="text-gray-400" />
-                <Input label="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required placeholder="••••••••" className="bg-gray-900 border-gray-800 text-white focus:border-cyan-500" labelClassName="text-gray-400" />
+                <Input
+                    label="Username or Email"
+                    type="text"
+                    value={identifier}
+                    onChange={(e) => setIdentifier(e.target.value)}
+                    required
+                    placeholder="name@company.com"
+                    className="bg-gray-900 border-gray-800 text-white focus:border-cyan-500"
+                    labelClassName="text-gray-400"
+                />
+                <Input
+                    label="Password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    placeholder="••••••••"
+                    className="bg-gray-900 border-gray-800 text-white focus:border-cyan-500"
+                    labelClassName="text-gray-400"
+                />
 
                 <div className="flex items-center justify-between">
                     <label className="flex items-center">
                         <input type="checkbox" className="rounded border-gray-800 bg-gray-900 text-cyan-500 focus:ring-cyan-500" />
                         <span className="ml-2 text-sm text-gray-400">Remember me</span>
                     </label>
-                    <a href="#" className="text-sm font-medium text-cyan-500 hover:text-cyan-400">Forgot password?</a>
+                    <button type="button" className="text-sm font-medium text-cyan-500 hover:text-cyan-400 focus:outline-none">Forgot password?</button>
                 </div>
 
                 <Button type="submit" fullWidth disabled={loading} className="py-3 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-lg shadow-lg hover:shadow-cyan-500/25 transition-all">
@@ -113,32 +131,80 @@ export function LoginPage() {
 
 export function SignupPage() {
     const navigate = useNavigate();
+    const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        setError('');
+
+        if (password !== confirmPassword) {
+            setError("Passwords do not match");
+            return;
+        }
+
         setLoading(true);
         setTimeout(() => {
             localStorage.setItem('automl_token', 'mock-token-123');
-            localStorage.setItem('automl_user', JSON.stringify({ email, name: email.split('@')[0] }));
+            localStorage.setItem('automl_user', JSON.stringify({ email, name: username }));
             setLoading(false);
-            navigate('/dashboard');
+            navigate('/jarvis');
         }, 800);
     };
 
     return (
-        <AuthContainer title="Create an account" subtitle="Start your 14-day free trial">
-            <form onSubmit={handleSubmit} className="space-y-5">
-                <div className="grid grid-cols-2 gap-4">
-                    <Input label="First Name" placeholder="John" className="bg-gray-900 border-gray-800 text-white focus:border-cyan-500" labelClassName="text-gray-400" />
-                    <Input label="Last Name" placeholder="Doe" className="bg-gray-900 border-gray-800 text-white focus:border-cyan-500" labelClassName="text-gray-400" />
+        <AuthContainer title="Create an account" subtitle="Start your journey with Jarvis">
+            {error && (
+                <div className="bg-red-500/10 border border-red-500/50 text-red-500 px-4 py-2 rounded-lg text-sm text-center">
+                    {error}
                 </div>
-                <Input label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="name@company.com" className="bg-gray-900 border-gray-800 text-white focus:border-cyan-500" labelClassName="text-gray-400" />
-                <Input label="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required placeholder="••••••••" className="bg-gray-900 border-gray-800 text-white focus:border-cyan-500" labelClassName="text-gray-400" />
+            )}
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <Input
+                    label="Username"
+                    placeholder="StartUpHero"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    required
+                    className="bg-gray-900 border-gray-800 text-white focus:border-cyan-500"
+                    labelClassName="text-gray-400"
+                />
+                <Input
+                    label="Email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    placeholder="name@company.com"
+                    className="bg-gray-900 border-gray-800 text-white focus:border-cyan-500"
+                    labelClassName="text-gray-400"
+                />
+                <Input
+                    label="Password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    placeholder="••••••••"
+                    className="bg-gray-900 border-gray-800 text-white focus:border-cyan-500"
+                    labelClassName="text-gray-400"
+                />
+                <Input
+                    label="Confirm Password"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    placeholder="••••••••"
+                    className="bg-gray-900 border-gray-800 text-white focus:border-cyan-500"
+                    labelClassName="text-gray-400"
+                />
 
-                <Button type="submit" fullWidth disabled={loading} className="py-3 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-lg shadow-lg hover:shadow-cyan-500/25 transition-all">
+                <Button type="submit" fullWidth disabled={loading} className="py-3 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-lg shadow-lg hover:shadow-cyan-500/25 transition-all mt-4">
                     {loading ? "Creating account..." : "Create Account"}
                 </Button>
             </form>
