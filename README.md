@@ -1,4 +1,4 @@
-# AutoML Laboratory
+# AutoML LAB
 <sub><em>An AutoML-driven web platform for end-to-end data analysis and decision support</em></sub>
 
 ---
