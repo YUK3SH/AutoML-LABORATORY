@@ -125,6 +125,30 @@ def analyze_results_with_gemini(report: dict, dataset_info: dict = None, use_dem
         best_rec  = max(results, key=lambda r: r.get('recall', 0))
         acc_gap   = (best_acc.get('accuracy', 0) - worst_acc.get('accuracy', 0)) * 100
 
+    # Metric-specific rankings based on task
+    if task == "regression":
+        ranking_sections = f"""
+**R² Ranking:** (best={best_acc['framework']} {best_acc.get('r2',0):.4f}, worst={worst_acc['framework']} {worst_acc.get('r2',0):.4f})
+**RMSE Ranking:** (best={min(results, key=lambda r: r.get('rmse',99)).get('framework')} {min(results, key=lambda r: r.get('rmse',99)).get('rmse',0):.4f})
+**MAE Ranking:** (best={min(results, key=lambda r: r.get('mae',99)).get('framework')} {min(results, key=lambda r: r.get('mae',99)).get('mae',0):.4f})
+"""
+        winner_score_label = f"R² ({best_acc.get('r2', 0):.4f})"
+        gap_label = "R² gap"
+        improvement_label = f"R² {best_acc.get('r2',0):.4f}"
+    else:
+        ranking_sections = f"""
+**Accuracy Ranking:** (best={best_acc['framework']} {best_acc.get('accuracy',0)*100:.2f}%, worst={worst_acc['framework']} {worst_acc.get('accuracy',0)*100:.2f}%)
+**F1-Score Ranking:** (best={best_f1['framework']} {best_f1.get('f1_score',0)*100:.2f}%)
+**Precision Ranking:** (best={best_prec['framework']} {best_prec.get('precision',0)*100:.2f}%)
+**Recall Ranking:** (best={best_rec['framework']} {best_rec.get('recall',0)*100:.2f}%)
+"""
+        winner_score_label = f"Accuracy ({best_acc.get('accuracy', 0)*100:.2f}%)"
+        gap_label = "accuracy gap"
+        improvement_label = f"Accuracy {best_acc.get('accuracy', 0)*100:.2f}%"
+
+    acc_gap_str = f"{acc_gap:.4f}" if task == "regression" else f"{acc_gap:.2f}%"
+
+
     prompt = f"""You are a senior ML engineer. Analyze these AutoML benchmark results and write a complete technical report.
 DO NOT write a client header, date, or executive summary. Start DIRECTLY with Section 1.
 Use the EXACT metric numbers given. Be specific and compare all frameworks against each other numerically.
@@ -144,25 +168,22 @@ Use the EXACT metric numbers given. Be specific and compare all frameworks again
 
 ## 1.  Winner Analysis
 - State which model won and its exact scores across ALL 4 metrics
-- Compare winner's Accuracy ({best_acc['accuracy']*100:.2f}%) against each other framework numerically
-- The accuracy gap between best and worst is {acc_gap:.2f}% — is this significant for a real deployment decision?
+- Compare winner's {winner_score_label} against each other framework numerically
+- The {gap_label} between best and worst is {acc_gap_str} — is this significant for a real deployment decision?
 - Explain WHY this specific algorithm type performs best on this type of tabular data
 
 ## 2. Metric-by-Metric Full Comparison
 Rank ALL frameworks for EACH metric separately with actual values:
 
-**Accuracy Ranking:** (best={best_acc['framework']} {best_acc['accuracy']*100:.2f}%, worst={worst_acc['framework']} {worst_acc['accuracy']*100:.2f}%)
-**F1-Score Ranking:** (best={best_f1['framework']} {best_f1['f1_score']*100:.2f}%)
-**Precision Ranking:** (best={best_prec['framework']} {best_prec['precision']*100:.2f}%)
-**Recall Ranking:** (best={best_rec['framework']} {best_rec['recall']*100:.2f}%)
+{ranking_sections}
 
 For each metric explain: what it measures, which framework leads, and whether the differences are meaningful.
 
 ## 3. Speed vs Accuracy Tradeoff
-- List all frameworks with their time and accuracy
-- Fastest framework: {fastest['framework']} at {fastest['execution_time_seconds']}s — what accuracy did it achieve?
-- Calculate and compare accuracy-per-second for each framework
-- Is the extra training time of slower frameworks justified by the accuracy gain?
+- List all frameworks with their time and performance metric ({'R²' if task == 'regression' else 'Accuracy'})
+- Fastest framework: {fastest['framework']} at {fastest['execution_time_seconds']}s — what performance did it achieve?
+- Calculate and compare performance-per-second for each framework
+- Is the extra training time of slower frameworks justified by the performance gain?
 
 ## 4. Internal Algorithm Comparison (per framework)
 For each framework, analyze its two internal algorithm scores:
@@ -178,10 +199,10 @@ For each framework, analyze its two internal algorithm scores:
 ## 6. Production Recommendation
 Give a specific recommendation for 3 use cases:
 - **Latency-critical** (fastest inference needed): Which framework and why?
-- **Accuracy-critical** (best performance needed): Which framework and why?
-- **Balanced** (good accuracy, reasonable time): Which framework and why?
+- **Performance-critical** (best { 'R²' if task == 'regression' else 'accuracy' } needed): Which framework and why?
+- **Balanced** (good performance, reasonable time): Which framework and why?
 
-## 7. Top 5 Ways to Improve Accuracy Beyond {winner.get('accuracy',0)*100:.2f}%
+## 7. Top 5 Ways to Improve Performance Beyond {improvement_label}
 Give 5 specific, actionable improvements:
 1. Feature engineering (specific to {task_type} problems)
 2. Hyperparameter tuning strategy with specific parameters to tune

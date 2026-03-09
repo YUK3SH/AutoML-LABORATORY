@@ -73,8 +73,7 @@ def _run_tpot_native(X_train, X_test, y_train, y_test, task):
         tpot = TPOTRegressor(
             generations=5,
             population_size=20,
-            random_state=RANDOM_STATE,
-            n_jobs=-1,
+            n_jobs=1,
             max_time_mins=3,
         )
     else:
@@ -82,8 +81,7 @@ def _run_tpot_native(X_train, X_test, y_train, y_test, task):
         tpot = TPOTClassifier(
             generations=5,
             population_size=20,
-            random_state=RANDOM_STATE,
-            n_jobs=-1,
+            n_jobs=1,
             max_time_mins=3,
         )
 
