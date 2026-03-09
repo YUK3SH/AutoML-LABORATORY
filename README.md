@@ -16,6 +16,8 @@ pinned: false
 
 **AutoML Laboratory** is a comprehensive supervised learning benchmarking platform designed to automate the machine learning pipeline. It allows users to upload datasets, automatically detect task types, and benchmark multiple state-of-the-art AutoML frameworks simultaneously to find the best performing model.
 
+### 🚀 [Live Demo on Hugging Face Spaces](https://huggingface.co/spaces/Yukesh46/AutoML-LAB)
+
 ---
 
 ## Key Features
