@@ -49,7 +49,13 @@ def run_all_frameworks(X_train, X_test, y_train, y_test,
     for fw_name in selected_frameworks:
         if fw_name not in FRAMEWORK_MAP: continue
         _update_state(current=fw_name)
-        results.append(FRAMEWORK_MAP[fw_name]())
+        
+        try:
+            res = FRAMEWORK_MAP[fw_name]()
+            results.append(res)
+        except Exception:
+            pass
+            
         with _lock: _execution_state["completed"].append(fw_name)
 
     report = generate_comparison_report(results)

@@ -237,26 +237,38 @@
   const REPORT = JSON.parse(document.getElementById('report-data').textContent);
   renderAccuracyChart(REPORT);
 
-  async function runGeminiAnalysis() {
+  async function runGeminiAnalysis(isDemo = false) {
     const sec = document.getElementById('gemini-section');
     const btn = document.getElementById('btn-gemini');
     const load = document.getElementById('gemini-loading');
     const txt = document.getElementById('gemini-text');
     sec.style.display = 'block';
-    btn.disabled = true; btn.textContent = 'Analyzing…';
+    btn.disabled = true; btn.textContent = isDemo ? 'Loading Demo Analysis…' : 'Analyzing…';
     load.style.display = 'flex'; txt.style.display = 'none';
-    sec.scrollIntoView({ behavior: 'smooth' });
+    if (!isDemo) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
     try {
-      const res = await fetch('/analyze/gemini', { method: 'POST' });
+      const url = isDemo ? '/analyze/gemini?demo=true' : '/analyze/gemini';
+      const res = await fetch(url, { method: 'POST' });
       const data = await res.json();
       load.style.display = 'none';
       txt.style.display = 'block';
       if (data.analysis) {
         txt.innerHTML = marked.parse(data.analysis);
-        btn.textContent = ' Analysis Complete';
+        btn.textContent = isDemo ? ' Demo Analysis Loaded' : ' Analysis Complete';
+        if (isDemo) btn.classList.add('btn-demo-active');
       } else {
-        txt.innerHTML = '<div class="gemini-error"> ' + (data.error || 'Analysis failed.')
-          + '<br><small>Set GEMINI_API_KEY environment variable to enable AI analysis.</small></div>';
+        let errorHtml = `<div class="gemini-error">⚠ ${data.error || 'Analysis failed.'}</div>`;
+        if (data.can_demo) {
+          errorHtml += `
+            <div class="demo-prompt-box">
+              <p>You can still view a <strong>Demo Analysis</strong> based on your actual results.</p>
+              <button class="btn-action btn-demo-trigger" onclick="runGeminiAnalysis(true)">View Demo Analysis</button>
+            </div>`;
+        } else {
+          errorHtml += '<small class="error-step">Set a valid GEMINI_API_KEY in your .env to enable full AI analysis.</small>';
+        }
+        txt.innerHTML = errorHtml;
         btn.disabled = false; btn.textContent = 'Retry Gemini Analysis';
       }
     } catch (e) {

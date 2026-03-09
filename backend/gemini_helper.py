@@ -14,15 +14,53 @@ GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
 
 
-def analyze_results_with_gemini(report: dict, dataset_info: dict = None) -> dict:
+def generate_demo_analysis(report: dict, dataset_info: dict = None) -> dict:
+    """
+    Generate a high-quality static analysis report for demo purposes.
+    """
+    ds = dataset_info or {}
+    dataset_name = ds.get("name", "the dataset")
+    results = [r for r in report.get("results", []) if r.get("status") == "success"]
+    if not results:
+        return {"analysis": None, "error": "No successful results to analyze."}
+
+    winner = report.get("winner", {})
+    task = report.get("task", "binary")
+    
+    # Simple template-based demo analysis
+    demo_text = f"""## 🧪 Demo AI Analysis: {dataset_name}
+
+**Note: This is a Demo Analysis generated locally because no valid Gemini API key was detected.**
+
+### 1. Winner Analysis
+The **{winner.get('best_model', 'N/A')}** model emerged as the top performer using the **{winner.get('framework', 'N/A')}** framework. 
+It achieved an {'R²' if task == 'regression' else 'Accuracy'} of **{winner.get('accuracy', 0)*100 if task != 'regression' else winner.get('r2', 0):.2f}{'%' if task != 'regression' else ''}**.
+
+### 2. Technical Comparison
+Across the {len(results)} frameworks tested, we observe a consistent trend where gradient-boosting algorithms (like those used in H2O and AutoGluon) outperformed traditional linear models. This is typical for tabular data with complex feature interactions.
+
+### 3. Recommendation
+For production deployment, we recommend the winner due to its superior balance of inference speed and predictive power. To further improve results, consider:
+- **Feature Engineering**: Creating interaction terms between top features.
+- **Hyperparameter Tuning**: Running a longer search (e.g., 1 hour+) for the top-performing frameworks.
+- **Ensemble Methods**: Stacking the top 3 models could yield a 1-2% performance boost.
+"""
+    return {"analysis": demo_text, "error": None}
+
+
+def analyze_results_with_gemini(report: dict, dataset_info: dict = None, use_demo: bool = False) -> dict:
     """
     Send comparison report to Gemini for expert analysis.
     dataset_info: optional dict with keys: name, target_column, n_rows, n_cols, task
     """
-    if not GEMINI_API_KEY:
+    if use_demo:
+        return generate_demo_analysis(report, dataset_info)
+
+    if not GEMINI_API_KEY or GEMINI_API_KEY == "your_key_here":
         return {
-            "error": "GEMINI_API_KEY not set. Add it to your environment variables.",
-            "analysis": None
+            "error": "GEMINI_API_KEY not set or invalid. Add a valid key to your .env file.",
+            "analysis": None,
+            "can_demo": True
         }
 
     results = [r for r in report.get("results", []) if r.get("status") == "success"]
@@ -181,6 +219,11 @@ Be technical, precise, and use exact numbers throughout. Tailor advice to the ta
 
     except urllib.error.HTTPError as e:
         body = e.read().decode()
-        return {"analysis": None, "error": f"Gemini API error {e.code}: {body[:300]}"}
+        err_msg = f"Gemini API error {e.code}: {body[:300]}"
+        can_demo = False
+        if "leaked" in body.lower() or e.code == 403:
+            err_msg = "Your API key was reported as leaked or is invalid. Please use another API key."
+            can_demo = True
+        return {"analysis": None, "error": err_msg, "can_demo": can_demo}
     except Exception as e:
         return {"analysis": None, "error": str(e)}

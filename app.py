@@ -343,10 +343,14 @@ def gemini_analyze():
     p = os.path.join(RESULTS_FOLDER, "comparison_report.json")
     if not os.path.exists(p):
         return jsonify({"error": "No results to analyze."}), 404
+    
+    # Check if demo mode is requested
+    demo_mode = request.args.get("demo", "false").lower() == "true"
+    
     with open(p) as f: report = json.load(f)
     # Pass dataset metadata so analysis is fully dataset-agnostic
     dataset_info = session.get("last_run_info", {})
-    result = analyze_results_with_gemini(report, dataset_info=dataset_info)
+    result = analyze_results_with_gemini(report, dataset_info=dataset_info, use_demo=demo_mode)
     return jsonify(result)
 
 
