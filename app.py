@@ -56,27 +56,49 @@ def sanitize_json(obj):
 def signup():
     if request.method == "GET":
         return render_template("signup.html")
-    d = request.get_json()
-    result = create_user(d["name"], d["email"], d["password"], d.get("college", ""))
+    
+    # Support both JSON and Form data
+    if request.is_json:
+        d = request.get_json()
+    else:
+        d = request.form
+        
+    result = create_user(d.get("name"), d.get("email"), d.get("password"), d.get("college", ""))
     if result["success"]:
-        user = authenticate_user(d["email"], d["password"])
-        session["user_id"] = user["id"]
+        user = authenticate_user(d.get("email"), d.get("password"))
+        session["user_id"]   = user["id"]
         session["user_name"] = user["name"]
-        return jsonify({"success": True})
-    return jsonify(result), 400
+        if request.is_json:
+            return jsonify({"success": True})
+        return redirect(url_for("index"))
+    
+    if request.is_json:
+        return jsonify(result), 400
+    return render_template("signup.html", error=result.get("error", "Signup failed."))
 
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "GET":
         return render_template("login.html")
-    d = request.get_json()
-    user = authenticate_user(d["email"], d["password"])
+    
+    if request.is_json:
+        d = request.get_json()
+    else:
+        d = request.form
+        
+    user = authenticate_user(d.get("email"), d.get("password"))
     if user:
         session["user_id"]   = user["id"]
         session["user_name"] = user["name"]
-        return jsonify({"success": True})
-    return jsonify({"error": "Invalid email or password."}), 401
+        if request.is_json:
+            return jsonify({"success": True})
+        return redirect(url_for("index"))
+    
+    err = "Invalid email or password."
+    if request.is_json:
+        return jsonify({"error": err}), 401
+    return render_template("login.html", error=err)
 
 
 @app.route("/logout")

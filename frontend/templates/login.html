@@ -7,36 +7,36 @@
     <h1 class="auth-title">Welcome Back</h1>
     <p class="auth-sub">Login to access your experiments</p>
 
+    {% if error %}
+    <div class="error-msg" id="auth-error">{{ error }}</div>
+    {% elif error_msg %}
+    <div class="error-msg" id="auth-error">{{ error_msg }}</div>
+    {% else %}
     <div class="error-msg" id="auth-error" style="display:none"></div>
+    {% endif %}
 
-    <div class="form-group">
-      <label class="form-label">Email</label>
-      <input type="email" id="email" class="form-input" placeholder="you@example.com" />
-    </div>
-    <div class="form-group">
-      <label class="form-label">Password</label>
-      <input type="password" id="password" class="form-input" placeholder="••••••••" />
-    </div>
+    <form method="POST" action="{{ url_for('login') }}">
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" name="email" class="form-input" placeholder="you@example.com" required />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" name="password" class="form-input" placeholder="••••••••" required />
+      </div>
 
-    <button class="btn-auth" id="btn-login">Login →</button>
+      <button type="submit" class="btn-auth" id="btn-login">Login →</button>
+    </form>
+
+    <div
+      style="margin-top:20px; padding:12px; background:rgba(255,255,255,0.05); border-radius:8px; border:1px solid rgba(255,255,255,0.1); font-size:0.85rem; color:var(--muted);">
+      <p style="margin-bottom:8px;">⚠️ <b>Having trouble logging in?</b> If you get looped back here, try opening the
+        app directly:</p>
+      <a href="https://yukesh46-automl-lab.hf.space" target="_blank"
+        style="color:var(--accent); text-decoration:none; font-weight:600;">Open Direct App ↗</a>
+    </div>
 
     <p class="auth-switch">Don't have an account? <a href="{{ url_for('signup') }}">Sign Up</a></p>
   </div>
 </div>
-<script>
-document.getElementById('btn-login').addEventListener('click', async () => {
-  const email    = document.getElementById('email').value.trim();
-  const password = document.getElementById('password').value;
-  const errEl    = document.getElementById('auth-error');
-  errEl.style.display = 'none';
-  if (!email || !password) { errEl.textContent = 'Please fill all fields.'; errEl.style.display = 'block'; return; }
-  const btn = document.getElementById('btn-login');
-  btn.disabled = true; btn.textContent = 'Logging in…';
-  const res  = await fetch('/login', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({email, password}) });
-  const data = await res.json();
-  if (data.success) { window.location.href = '/app'; }
-  else { errEl.textContent = data.error || 'Login failed.'; errEl.style.display = 'block'; btn.disabled = false; btn.textContent = 'Login →'; }
-});
-document.addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('btn-login').click(); });
-</script>
 {% endblock %}
