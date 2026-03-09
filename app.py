@@ -22,13 +22,19 @@ from backend.task_detector import detect_task, get_task_config
 from backend.preprocessor import get_preprocessed_splits
 from backend.runner import run_in_background, get_execution_state
 import numpy as np
+from werkzeug.middleware.proxy_fix import ProxyFix
 app = Flask(__name__, template_folder="frontend/templates", static_folder="frontend/static")
-app.config["UPLOAD_FOLDER"]      = UPLOAD_FOLDER
-app.config["MAX_CONTENT_LENGTH"] = MAX_CONTENT_LENGTH
-app.secret_key                   = "automl-lab-secret-key-2024"
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+
 app.config.update(
+    UPLOAD_FOLDER      = UPLOAD_FOLDER,
+    MAX_CONTENT_LENGTH = MAX_CONTENT_LENGTH,
+    SECRET_KEY         = "automl-lab-secret-key-2024",
     SESSION_COOKIE_SAMESITE='None',
     SESSION_COOKIE_SECURE=True,
+    SESSION_COOKIE_HTTPONLY=True,
+    # Ensure sessions persist across redirects in iframes
+    SESSION_REFRESH_EACH_REQUEST=True
 )
 from dotenv import load_dotenv
 load_dotenv()
