@@ -74,7 +74,6 @@ def _run_tpot_native(X_train, X_test, y_train, y_test, task):
             generations=5,
             population_size=20,
             random_state=RANDOM_STATE,
-            verbosity=0,
             n_jobs=-1,
             max_time_mins=3,
         )
@@ -84,7 +83,6 @@ def _run_tpot_native(X_train, X_test, y_train, y_test, task):
             generations=5,
             population_size=20,
             random_state=RANDOM_STATE,
-            verbosity=0,
             n_jobs=-1,
             max_time_mins=3,
         )
