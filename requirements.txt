@@ -13,3 +13,5 @@ xgboost>=1.7.0
 lightgbm>=4.0.0
 catboost>=1.2.0
 werkzeug>=2.3.0
+python-dotenv>=1.0.0
+gunicorn>=21.0.0

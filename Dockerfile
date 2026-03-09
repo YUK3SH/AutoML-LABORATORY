@@ -27,5 +27,5 @@ RUN mkdir -p uploads results/confusion_matrices models && \
 ENV FLASK_APP=app.py
 ENV PYTHONUNBUFFERED=1
 
-# Run the application
-CMD ["python", "app.py"]
+# Run the application with gunicorn
+CMD ["gunicorn", "--bind", "0.0.0.0:7860", "--timeout", "120", "app:app"]
