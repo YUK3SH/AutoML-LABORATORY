@@ -26,6 +26,10 @@ app = Flask(__name__, template_folder="frontend/templates", static_folder="front
 app.config["UPLOAD_FOLDER"]      = UPLOAD_FOLDER
 app.config["MAX_CONTENT_LENGTH"] = MAX_CONTENT_LENGTH
 app.secret_key                   = "automl-lab-secret-key-2024"
+app.config.update(
+    SESSION_COOKIE_SAMESITE='None',
+    SESSION_COOKIE_SECURE=True,
+)
 from dotenv import load_dotenv
 load_dotenv()
 init_db()
