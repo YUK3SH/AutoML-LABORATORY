@@ -1,4 +1,14 @@
-# 🧪 AutoML Laboratory
+---
+title: AutoML-Laboratory
+emoji: 🧪
+colorFrom: blue
+colorTo: purple
+sdk: docker
+app_port: 5000
+pinned: false
+---
+
+# AutoML Laboratory
 
 [![Python Version](https://img.shields.io/badge/python-3.10%20%7C%203.11-blue.svg)](https://www.python.org/)
 [![Flask](https://img.shields.io/badge/flask-%23000.svg?style=flat&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
@@ -8,22 +18,22 @@
 
 ---
 
-## ✨ Key Features
+## Key Features
 
-- **🚀 Multiple Frameworks**: Benchmark top-tier AutoML libraries in one run:
+- **Multiple Frameworks**: Benchmark top-tier AutoML libraries in one run:
   - **H2O AutoML**
   - **AutoGluon**
   - **TPOT** (Genetic Programming based optimization)
   - **FLAML** (Fast and Lightweight AutoML)
-- **🔍 Auto Task Detection**: Automatically identifies whether your dataset requires **Binary Classification**, **Multiclass Classification**, or **Regression**.
-- **📊 Interactive Dashboard**: Visualize metrics through dynamic charts (powered by Chart.js) and comparison tables.
-- **🤖 Gemini AI Analysis**: Integrated AI-powered results interpretation to help you understand *why* a model performed well.
-- **💾 Model Export**: Download optimized models and full synthesis reports (.json) for immediate deployment.
-- **🔒 Secure Auth**: Full user management system with separate experiment tracking.
+- **Auto Task Detection**: Automatically identifies whether your dataset requires **Binary Classification**, **Multiclass Classification**, or **Regression**.
+- **Interactive Dashboard**: Visualize metrics through dynamic charts (powered by Chart.js) and comparison tables.
+- **Gemini AI Analysis**: Integrated AI-powered results interpretation to help you understand *why* a model performed well.
+- **Model Export**: Download optimized models and full synthesis reports (.json) for immediate deployment.
+- **Secure Auth**: Full user management system with separate experiment tracking.
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 ### Backend
 - **Core**: Python, Flask
@@ -38,7 +48,7 @@
 
 ---
 
-## ⚙️ Installation
+## Installation
 
 ### Prerequisites
 - Python **3.10** or **3.11** (recommended)
@@ -78,7 +88,7 @@
 
 ---
 
-## 📈 Workflow
+## Workflow
 
 ```mermaid
 graph TD
@@ -94,7 +104,7 @@ graph TD
 
 ---
 
-## � Example Datasets
+## Example Datasets
 
 The repository includes curated datasets in the `uploads/` folder to get you started:
 - `StudentsPerformance.csv`: Perfect for **Multiclass Classification** (predicting grades/scores).
@@ -103,7 +113,7 @@ The repository includes curated datasets in the `uploads/` folder to get you sta
 
 ---
 
-## 🧪 Testing
+## Testing
 
 We use `pytest` for unit and integration testing. To run the test suite:
 
@@ -117,7 +127,7 @@ pytest tests/ -v
 
 ---
 
-## �📂 Project Structure
+## Project Structure
 
 - `app.py`: Main Flask entry point and route definitions.
 - `backend/`:
@@ -131,13 +141,13 @@ pytest tests/ -v
 
 ---
 
-## 📝 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
@@ -148,5 +158,3 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 5. Open a Pull Request
 
 ---
-
-Created by [YUK3SH](https://github.com/YUK3SH)
