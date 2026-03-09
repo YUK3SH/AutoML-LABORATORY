@@ -30,3 +30,4 @@ FRAMEWORK_ALGORITHMS = {
     "TPOT":      ["XGBoost", "Random Forest"],
     "FLAML":     ["LightGBM", "XGBoost"],
 }
+print(f"--- Config loaded. Base Dir: {BASE_DIR} ---")

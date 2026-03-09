@@ -21,10 +21,11 @@ COPY . .
 
 # Create necessary directories and set permissions for Hugging Face
 RUN mkdir -p uploads results/confusion_matrices models && \
-    chmod -R 777 uploads results models
+    chmod -R 777 /app
 
 # Set environment variables
 ENV FLASK_APP=app.py
+ENV PYTHONUNBUFFERED=1
 
 # Run the application
 CMD ["python", "app.py"]
