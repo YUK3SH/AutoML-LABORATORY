@@ -1,0 +1,28 @@
+# Machine Learning Models
+models/
+*.pkl
+*.joblib
+*.pth
+*.h5
+*.onnx
+
+# Data & Results
+uploads/*
+!uploads/.gitkeep
+results/*
+!results/.gitkeep
+automl_lab.db
+
+# Environments
+venv/
+.env
+__pycache__/
+*.pyc
+
+# IDEs
+.vscode/
+.idea/
+
+# Deployment
+vercel.json
+deployment_guide.md

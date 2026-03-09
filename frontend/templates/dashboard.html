@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — AutoML Laboratory{% endblock %}
+{% block content %}
+<div class="page-container">
+  <div class="dash-header">
+    <div>
+      <h1 class="dash-title">Welcome back, <em>{{ user.name }}</em></h1>
+      <p class="dash-sub">{{ user.college or 'AutoML Laboratory' }} · {{ experiments|length }} experiment{{ 's' if experiments|length != 1 }}</p>
+    </div>
+    <a href="{{ url_for('index') }}" class="btn-primary">+ New Experiment</a>
+  </div>
+
+  {% if experiments %}
+  <div class="exp-table-wrap">
+    <table class="exp-table">
+      <thead>
+        <tr>
+          <th>#</th><th>Dataset</th><th>Target</th><th>Frameworks</th>
+          <th>Winner</th><th>Accuracy</th><th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for e in experiments %}
+        <tr>
+          <td class="mono">{{ loop.index }}</td>
+          <td>{{ e.dataset_name or '—' }}</td>
+          <td class="mono">{{ e.target_column or '—' }}</td>
+          <td>
+            {% if e.frameworks_used is iterable and e.frameworks_used is not string %}
+              {% for fw in e.frameworks_used %}<span class="fw-mini fw-{{ fw|lower }}">{{ fw }}</span>{% endfor %}
+            {% else %}{{ e.frameworks_used or '—' }}{% endif %}
+          </td>
+          <td class="mono winner-cell">{{ e.winner_model or '—' }}</td>
+          <td>
+            {% if e.winner_accuracy %}
+              <span class="acc-badge">{{ "%.1f"|format(e.winner_accuracy * 100) }}%</span>
+            {% else %}—{% endif %}
+          </td>
+          <td class="mono text-muted">{{ e.created_at[:10] if e.created_at else '—' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">🧪</div>
+    <h3>No experiments yet</h3>
+    <p>Run your first AutoML benchmark to see results here.</p>
+    <a href="{{ url_for('index') }}" class="btn-primary">Start First Experiment →</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

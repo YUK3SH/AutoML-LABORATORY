@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Running Experiments — AutoML Laboratory{% endblock %}
+{% block extra_css %}
+  <style>
+    .loading-page { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2.5rem; padding: 2rem; }
+    .lab-beaker { font-size: 4rem; animation: bounce 1.2s ease-in-out infinite; }
+    @keyframes bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
+    .loading-title { font-family: 'Space Mono', monospace; font-size: 1.5rem; font-weight: 700; color: var(--fg); text-align: center; }
+    .loading-subtitle { color: var(--muted); font-size: 0.95rem; text-align: center; max-width: 420px; }
+    .framework-progress { display: flex; flex-direction: column; gap: 1rem; width: 100%; max-width: 480px; }
+    .fw-progress-row { display: flex; align-items: center; gap: 1rem; }
+    .fw-progress-name { font-family: 'Space Mono', monospace; font-size: 0.8rem; width: 100px; color: var(--fg); }
+    .fw-progress-bar-wrap { flex: 1; height: 6px; background: var(--border); border-radius: 99px; overflow: hidden; }
+    .fw-progress-bar { height: 100%; width: 0%; background: var(--accent); border-radius: 99px; transition: width 0.5s ease; }
+    .fw-progress-status { font-size: 0.75rem; width: 80px; text-align: right; color: var(--muted); font-family: 'Space Mono', monospace; }
+    .fw-progress-status.done { color: var(--green); }
+    .fw-progress-status.running { color: var(--accent); }
+    .current-op { font-family: 'Space Mono', monospace; font-size: 0.85rem; color: var(--accent); min-height: 1.4em; text-align: center; }
+    .elapsed-display { font-size: 0.8rem; color: var(--muted); font-family: 'Space Mono', monospace; }
+  </style>
+{% endblock %}
+{% block content %}
+
+  <div class="loading-page">
+    <div class="lab-beaker">️</div>
+    <div>
+      <div class="loading-title">Running Experiments…</div>
+      <p class="loading-subtitle">All frameworks are training on identical 80/20 stratified splits. This may take a few minutes.</p>
+    </div>
+
+    <div class="framework-progress" id="fw-progress"></div>
+    <div class="current-op" id="current-op">Initializing…</div>
+    <div class="elapsed-display" id="elapsed-display">Elapsed: 0s</div>
+  </div>
+
+{% endblock %}
+{% block extra_js %}<script src="{{ url_for('static', filename='js/progress.js') }}"></script>{% endblock %}

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}About — AutoML Laboratory{% endblock %}
+{% block content %}
+<div class="page-container">
+  <div class="page-hero">
+    <div class="page-pill">About the Platform</div>
+    <h1 class="page-title">AutoML Laboratory</h1>
+    <p class="page-sub">A controlled execution environment for benchmarking multiple AutoML frameworks on <strong>any supervised learning CSV dataset</strong> — ensuring fair, reproducible comparisons.</p>
+  </div>
+
+  <div class="about-grid">
+    <div class="about-block">
+      <h2>What It Does</h2>
+      <p>AutoML Laboratory runs four industry-leading AutoML frameworks — H2O, AutoGluon, TPOT, and FLAML — on the exact same 80/20 stratified train-test split of <strong>your dataset</strong>. Simply upload any CSV, select your target column — the platform auto-detects binary, multiclass, or regression, and the platform handles all preprocessing automatically: dropping ID-like columns, imputing missing values, encoding categoricals. Each framework tests two algorithms internally and returns its best model. Results are standardized into a common metrics format for direct comparison.</p>
+      <p style="margin-top:0.75rem; color:var(--muted); font-size:0.875rem;">Works with any dataset — classification (churn, fraud, disease, spam) or regression (house prices, salary, sales forecasting). No configuration needed. No dataset-specific configuration needed.</p>
+    </div>
+
+    <div class="about-block">
+      <h2>The 8 Algorithms</h2>
+      <div class="algo-table">
+        <div class="at-row header"><span>Framework</span><span>Algorithm 1</span><span>Algorithm 2</span></div>
+        <div class="at-row"><span class="fw-tag h2o">H2O</span><span>Gradient Boosting Machine</span><span>Random Forest (DRF)</span></div>
+        <div class="at-row"><span class="fw-tag ag">AutoGluon</span><span>LightGBM</span><span>CatBoost</span></div>
+        <div class="at-row"><span class="fw-tag tpot">TPOT</span><span>XGBoost</span><span>Random Forest</span></div>
+        <div class="at-row"><span class="fw-tag flaml">FLAML</span><span>LightGBM</span><span>XGBoost</span></div>
+      </div>
+    </div>
+
+    <div class="about-block">
+      <h2>Workflow</h2>
+      <div class="workflow-steps">
+        <div class="ws"><span class="ws-n">01</span><div><strong>Upload CSV</strong><p>Upload any CSV dataset — binary, multiclass, or regression. The platform auto-detects feature types and validates the data.</p></div></div>
+        <div class="ws"><span class="ws-n">02</span><div><strong>Single Split</strong><p>One 80/20 stratified split is made. All frameworks train on the exact same data — no leakage, no bias.</p></div></div>
+        <div class="ws"><span class="ws-n">03</span><div><strong>Parallel Benchmarking</strong><p>Each selected framework trains its 2 algorithms, picks the best, and returns standardized metrics.</p></div></div>
+        <div class="ws"><span class="ws-n">04</span><div><strong>AI Analysis</strong><p>Google Gemini analyzes the results and provides expert recommendations and improvement suggestions.</p></div></div>
+        <div class="ws"><span class="ws-n">05</span><div><strong>Download & Compare</strong><p>Download trained model artifacts as a ZIP. All experiments are saved to your dashboard history.</p></div></div>
+      </div>
+    </div>
+
+    <div class="about-block">
+      <h2>Tech Stack</h2>
+      <div class="tech-pills">
+        <span class="tech-pill">Flask</span><span class="tech-pill">H2O AutoML</span>
+        <span class="tech-pill">AutoGluon</span><span class="tech-pill">TPOT</span>
+        <span class="tech-pill">FLAML</span><span class="tech-pill">scikit-learn</span>
+        <span class="tech-pill">XGBoost</span><span class="tech-pill">LightGBM</span>
+        <span class="tech-pill">CatBoost</span><span class="tech-pill">Pandas</span>
+        <span class="tech-pill">SQLite</span><span class="tech-pill">Gemini AI</span>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

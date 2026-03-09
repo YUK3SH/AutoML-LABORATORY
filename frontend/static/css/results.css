@@ -1,0 +1,163 @@
+/* ============================================================
+   AutoML Laboratory — Results Page Styles
+   ============================================================ */
+
+.results-main { max-width: 1100px; margin: 0 auto; padding: 3rem 2rem 6rem; display: flex; flex-direction: column; gap: 3rem; }
+
+/* Winner Banner */
+.winner-section {
+  background: linear-gradient(135deg, rgba(245,158,11,0.12), rgba(245,158,11,0.04));
+  border: 1.5px solid rgba(245,158,11,0.35);
+  border-radius: 18px; padding: 2.5rem;
+  text-align: center; position: relative; overflow: hidden;
+}
+.winner-section::before {
+  content: ''; position: absolute; inset: -1px;
+  background: linear-gradient(135deg, rgba(245,158,11,0.25), transparent 60%);
+  border-radius: 18px; pointer-events: none;
+}
+.winner-eyebrow { font-family: var(--font-mono); font-size: 0.78rem; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.6rem; }
+.winner-name { font-size: clamp(1.6rem, 4vw, 2.5rem); font-weight: 700; color: var(--fg); margin-bottom: 1.8rem; }
+.winner-stats { display: flex; justify-content: center; gap: 2.5rem; flex-wrap: wrap; }
+.winner-stat { display: flex; flex-direction: column; align-items: center; gap: 0.3rem; }
+.stat-val { font-family: var(--font-mono); font-size: 1.5rem; font-weight: 700; color: var(--accent); }
+.stat-key { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; }
+
+/* Section Block */
+.section-block { display: flex; flex-direction: column; gap: 1.2rem; }
+.section-title { font-family: var(--font-mono); font-size: 0.78rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; padding-bottom: 0.8rem; border-bottom: 1px solid var(--border); }
+
+/* Results Table */
+.results-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+.results-table th {
+  background: var(--surface2); color: var(--muted);
+  padding: 0.65rem 1rem; text-align: left;
+  font-family: var(--font-mono); font-size: 0.7rem;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  white-space: nowrap; border-bottom: 1px solid var(--border);
+}
+.results-table td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); color: var(--fg); }
+.results-table tr:last-child td { border-bottom: none; }
+.results-table tr.winner-row td { background: rgba(245,158,11,0.05); }
+.results-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+/* Framework Pills */
+.fw-pill {
+  font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700;
+  padding: 0.2rem 0.6rem; border-radius: 5px;
+}
+.fw-pill.fw-h2o       { background: rgba(59,130,246,0.15);  color: #60a5fa; }
+.fw-pill.fw-autogluon { background: rgba(168,85,247,0.15);  color: #c084fc; }
+.fw-pill.fw-tpot      { background: rgba(34,197,94,0.15);   color: #4ade80; }
+.fw-pill.fw-flaml     { background: rgba(239,68,68,0.15);   color: #f87171; }
+
+/* Metric Bar Cell */
+.metric-bar-cell { display: flex; align-items: center; gap: 0.6rem; }
+.metric-bar-wrap { width: 80px; height: 5px; background: var(--border); border-radius: 99px; }
+.metric-bar { height: 5px; background: var(--accent); border-radius: 99px; min-width: 4px; }
+.metric-val { font-family: var(--font-mono); font-size: 0.8rem; }
+
+/* Badges */
+.badge { font-family: var(--font-mono); font-size: 0.7rem; padding: 0.2rem 0.6rem; border-radius: 5px; }
+.badge-success { background: rgba(34,197,94,0.12); color: var(--green); }
+.badge-error   { background: rgba(239,68,68,0.12);  color: var(--red); }
+.error-cell { color: var(--red); font-size: 0.78rem; font-family: var(--font-mono); }
+
+/* Chart */
+.chart-container {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 1.5rem;
+  height: 300px; position: relative;
+}
+
+/* Confusion Matrices Grid */
+.cm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1.2rem; }
+.cm-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 1.2rem;
+  display: flex; flex-direction: column; align-items: center; gap: 0.8rem;
+  transition: border-color 0.2s;
+}
+.cm-card:hover { border-color: var(--muted); }
+.cm-title { font-family: var(--font-mono); font-size: 0.78rem; color: var(--fg); font-weight: 700; }
+.cm-model { color: var(--muted); font-weight: 400; margin-left: 0.4rem; }
+.cm-img { width: 100%; border-radius: var(--radius); }
+.cm-acc { font-size: 0.78rem; color: var(--accent); font-family: var(--font-mono); }
+
+/* Detail Cards */
+.detail-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.2rem; }
+.detail-card {
+  background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg); padding: 1.4rem;
+  position: relative; overflow: hidden;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.detail-card:hover { transform: translateY(-2px); border-color: var(--muted); }
+.detail-winner { border-color: rgba(245,158,11,0.5) !important; }
+.winner-ribbon {
+  position: absolute; top: 14px; right: -22px;
+  background: var(--accent); color: #000;
+  font-size: 0.62rem; font-weight: 700; font-family: var(--font-mono);
+  padding: 0.15rem 2rem; transform: rotate(35deg);
+  letter-spacing: 0.05em;
+}
+.detail-fw {
+  font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700;
+  padding: 0.15rem 0.5rem; border-radius: 4px; display: inline-block;
+  margin-bottom: 0.6rem;
+}
+.detail-fw.fw-h2o       { background: rgba(59,130,246,0.15);  color: #60a5fa; }
+.detail-fw.fw-autogluon { background: rgba(168,85,247,0.15);  color: #c084fc; }
+.detail-fw.fw-tpot      { background: rgba(34,197,94,0.15);   color: #4ade80; }
+.detail-fw.fw-flaml     { background: rgba(239,68,68,0.15);   color: #f87171; }
+
+.detail-model { font-size: 0.95rem; font-weight: 600; color: var(--fg); margin-bottom: 1.2rem; }
+.detail-metrics { display: flex; flex-direction: column; gap: 0.6rem; }
+.dm-row { display: flex; justify-content: space-between; align-items: center; }
+.dm-row span { font-size: 0.78rem; color: var(--muted); }
+.dm-row strong { font-family: var(--font-mono); font-size: 0.82rem; color: var(--fg); }
+
+/* Algorithm tested tags in table */
+.algo-tested-cell { display: flex; gap: 0.35rem; flex-wrap: wrap; align-items: center; }
+.algo-tag {
+  font-family: var(--font-mono); font-size: 0.65rem;
+  padding: 0.15rem 0.45rem; border-radius: 4px;
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--muted); white-space: nowrap;
+}
+.algo-tag.algo-winner {
+  background: rgba(245,158,11,0.12); border-color: rgba(245,158,11,0.4);
+  color: var(--accent); font-weight: 700;
+}
+
+/* Algorithm breakdown in detail cards */
+.algo-breakdown {
+  margin-top: 1rem; padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+.algo-breakdown-title {
+  font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.07em;
+  color: var(--muted); margin-bottom: 0.6rem;
+}
+.algo-score-row {
+  display: flex; align-items: center; gap: 0.5rem;
+  margin-bottom: 0.45rem;
+}
+.algo-score-name {
+  font-family: var(--font-mono); font-size: 0.72rem;
+  color: var(--muted); width: 110px; white-space: nowrap;
+}
+.algo-score-name.algo-score-winner { color: var(--accent); font-weight: 700; }
+.algo-score-bar-wrap {
+  flex: 1; height: 5px; background: var(--border); border-radius: 99px; overflow: hidden;
+}
+.algo-score-bar {
+  height: 100%; background: var(--accent);
+  border-radius: 99px; min-width: 3px;
+  opacity: 0.6;
+}
+.algo-score-name.algo-score-winner ~ .algo-score-bar-wrap .algo-score-bar { opacity: 1; }
+.algo-score-val {
+  font-family: var(--font-mono); font-size: 0.72rem; color: var(--fg);
+  width: 40px; text-align: right;
+}

@@ -1,0 +1,186 @@
+"""
+gemini_helper.py
+----------------
+Sends experiment results to Google Gemini API for detailed AI analysis.
+Works for ANY binary classification dataset — not Titanic-specific.
+"""
+
+import os
+import json
+import urllib.request
+import urllib.error
+
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
+
+
+def analyze_results_with_gemini(report: dict, dataset_info: dict = None) -> dict:
+    """
+    Send comparison report to Gemini for expert analysis.
+    dataset_info: optional dict with keys: name, target_column, n_rows, n_cols, task
+    """
+    if not GEMINI_API_KEY:
+        return {
+            "error": "GEMINI_API_KEY not set. Add it to your environment variables.",
+            "analysis": None
+        }
+
+    results = [r for r in report.get("results", []) if r.get("status") == "success"]
+    failed  = [r for r in report.get("results", []) if r.get("status") != "success"]
+    winner  = report.get("winner", {})
+
+    # Dataset context — generic fallback if no info provided
+    ds = dataset_info or {}
+    dataset_name   = ds.get("name", "the uploaded dataset")
+    target_col     = ds.get("target_column", "the target column")
+    n_rows         = ds.get("n_rows", "unknown")
+    n_cols         = ds.get("n_cols", "unknown")
+    task_type      = ds.get("task", "binary classification")
+
+    task = report.get("task", "binary")
+    if task == "regression":
+        task_config_label = "Regression"
+    elif task == "multiclass":
+        task_config_label = "Multiclass Classification"
+    else:
+        task_config_label = "Binary Classification"
+    # Build metrics table rows — different columns for regression vs classification
+    metrics_rows = []
+    for r in results:
+        algo_scores = r.get("algorithm_scores", {})
+        algo_detail = " vs ".join([f"{k}: {v}" for k, v in algo_scores.items()])
+        if task == "regression":
+            metrics_rows.append(
+                f"| {r['framework']} | {r['best_model']} | "
+                f"**R²={r.get('r2',0):.4f}** | **RMSE={r.get('rmse',0):.4f}** | "
+                f"**MAE={r.get('mae',0):.4f}** | {r['execution_time_seconds']}s | {algo_detail} |"
+            )
+        else:
+            metrics_rows.append(
+                f"| {r['framework']} | {r['best_model']} | "
+                f"**{r.get('accuracy',0)*100:.2f}%** | **{r.get('f1_score',0)*100:.2f}%** | "
+                f"**{r.get('precision',0)*100:.2f}%** | **{r.get('recall',0)*100:.2f}%** | "
+                f"{r['execution_time_seconds']}s | {algo_detail} |"
+            )
+
+    failed_text = ""
+    if failed:
+        failed_text = "\n**Failed Frameworks:**\n" + "\n".join(
+            [f"- {f['framework']}: {f.get('error','Unknown error')}" for f in failed]
+        )
+
+    if not results:
+        return {"analysis": None, "error": "No successful results to analyze."}
+
+    fastest = min(results, key=lambda r: r['execution_time_seconds'])
+
+    if task == "regression":
+        best_acc  = max(results, key=lambda r: r.get('r2', -999))
+        worst_acc = min(results, key=lambda r: r.get('r2', -999))
+        acc_gap   = best_acc.get('r2', 0) - worst_acc.get('r2', 0)
+        best_f1 = best_prec = best_rec = best_acc  # not used for regression
+    else:
+        best_acc  = max(results, key=lambda r: r.get('accuracy', 0))
+        worst_acc = min(results, key=lambda r: r.get('accuracy', 0))
+        best_f1   = max(results, key=lambda r: r.get('f1_score', 0))
+        best_prec = max(results, key=lambda r: r.get('precision', 0))
+        best_rec  = max(results, key=lambda r: r.get('recall', 0))
+        acc_gap   = (best_acc.get('accuracy', 0) - worst_acc.get('accuracy', 0)) * 100
+
+    prompt = f"""You are a senior ML engineer. Analyze these AutoML benchmark results and write a complete technical report.
+DO NOT write a client header, date, or executive summary. Start DIRECTLY with Section 1.
+Use the EXACT metric numbers given. Be specific and compare all frameworks against each other numerically.
+
+---
+**Dataset:** {dataset_name} | **Target:** {target_col} | **Rows:** {n_rows} | **Columns:** {n_cols} | **Task:** {task_type} | **Split:** 80/20 stratified
+
+## Benchmark Results
+
+{('| Framework | Best Model | R² | RMSE | MAE | Time | Algorithm Comparison |' + chr(10) + '|-----------|-----------|-----|------|-----|------|---------------------|') if task == 'regression' else ('| Framework | Best Model | Accuracy | F1-Score | Precision | Recall | Time | Algorithm Comparison |' + chr(10) + '|-----------|-----------|----------|----------|-----------|--------|------|---------------------|')}
+{chr(10).join(metrics_rows)}
+{failed_text}
+
+**Winner:** {winner.get('best_model','N/A')} — {'R²: ' + str(round(winner.get('r2',0),4)) + ', RMSE: ' + str(round(winner.get('rmse',0),4)) + ', MAE: ' + str(round(winner.get('mae',0),4)) if task == 'regression' else 'Accuracy: ' + str(round(winner.get('accuracy',0)*100,2)) + '%, F1: ' + str(round(winner.get('f1_score',0)*100,2)) + '%, Precision: ' + str(round(winner.get('precision',0)*100,2)) + '%, Recall: ' + str(round(winner.get('recall',0)*100,2)) + '%'}, Time: {winner.get('execution_time_seconds',0)}s
+
+---
+
+## 1.  Winner Analysis
+- State which model won and its exact scores across ALL 4 metrics
+- Compare winner's Accuracy ({best_acc['accuracy']*100:.2f}%) against each other framework numerically
+- The accuracy gap between best and worst is {acc_gap:.2f}% — is this significant for a real deployment decision?
+- Explain WHY this specific algorithm type performs best on this type of tabular data
+
+## 2. Metric-by-Metric Full Comparison
+Rank ALL frameworks for EACH metric separately with actual values:
+
+**Accuracy Ranking:** (best={best_acc['framework']} {best_acc['accuracy']*100:.2f}%, worst={worst_acc['framework']} {worst_acc['accuracy']*100:.2f}%)
+**F1-Score Ranking:** (best={best_f1['framework']} {best_f1['f1_score']*100:.2f}%)
+**Precision Ranking:** (best={best_prec['framework']} {best_prec['precision']*100:.2f}%)
+**Recall Ranking:** (best={best_rec['framework']} {best_rec['recall']*100:.2f}%)
+
+For each metric explain: what it measures, which framework leads, and whether the differences are meaningful.
+
+## 3. Speed vs Accuracy Tradeoff
+- List all frameworks with their time and accuracy
+- Fastest framework: {fastest['framework']} at {fastest['execution_time_seconds']}s — what accuracy did it achieve?
+- Calculate and compare accuracy-per-second for each framework
+- Is the extra training time of slower frameworks justified by the accuracy gain?
+
+## 4. Internal Algorithm Comparison (per framework)
+For each framework, analyze its two internal algorithm scores:
+- Which algorithm won inside each framework?
+- By how much did the winner beat the loser?
+- Any surprising result where a simpler algorithm beat a complex one?
+
+## 5. Why These Results Make Sense
+- Why do certain algorithm types dominate on tabular/structured data?
+- What dataset characteristics (size, feature types, class balance) influence these results?
+- Why do gradient boosting variants consistently perform well?
+
+## 6. Production Recommendation
+Give a specific recommendation for 3 use cases:
+- **Latency-critical** (fastest inference needed): Which framework and why?
+- **Accuracy-critical** (best performance needed): Which framework and why?
+- **Balanced** (good accuracy, reasonable time): Which framework and why?
+
+## 7. Top 5 Ways to Improve Accuracy Beyond {winner.get('accuracy',0)*100:.2f}%
+Give 5 specific, actionable improvements:
+1. Feature engineering (specific to {task_type} problems)
+2. Hyperparameter tuning strategy with specific parameters to tune
+3. Ensemble/stacking the top frameworks together
+4. Data preprocessing improvements
+5. Cross-validation and model selection strategy
+
+## 8. Limitations
+- Impact of dataset size ({n_rows} rows) on reliability of results
+- Overfitting risks with small datasets
+- What these benchmark results may NOT tell you
+
+Be technical, precise, and use exact numbers throughout. Tailor advice to the task type ({task_config_label}). Use markdown with headers, **bold** for key numbers, and tables where useful."""
+
+    payload = {
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {
+            "temperature": 0.3,
+            "maxOutputTokens": 8192,
+        }
+    }
+
+    try:
+        url  = f"{GEMINI_URL}?key={GEMINI_API_KEY}"
+        data = json.dumps(payload).encode("utf-8")
+        req  = urllib.request.Request(
+            url, data=data,
+            headers={"Content-Type": "application/json"},
+            method="POST"
+        )
+        with urllib.request.urlopen(req, timeout=60) as resp:
+            result = json.loads(resp.read().decode())
+            text   = result["candidates"][0]["content"]["parts"][0]["text"]
+            return {"analysis": text, "error": None}
+
+    except urllib.error.HTTPError as e:
+        body = e.read().decode()
+        return {"analysis": None, "error": f"Gemini API error {e.code}: {body[:300]}"}
+    except Exception as e:
+        return {"analysis": None, "error": str(e)}

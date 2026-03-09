@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Contact — AutoML Laboratory{% endblock %}
+{% block content %}
+<div class="page-container">
+  <div class="page-hero">
+    <div class="page-pill">Get In Touch</div>
+    <h1 class="page-title">Contact Us</h1>
+    <p class="page-sub">Have questions, feedback, or need help? Send us a message and we'll get back to you.</p>
+  </div>
+
+  <div class="contact-layout">
+    <div class="contact-form-card">
+      <div class="success-msg" id="contact-success" style="display:none">✓ Message sent successfully! We'll get back to you soon.</div>
+      <div class="error-msg"   id="contact-error"   style="display:none"></div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Name</label>
+          <input type="text" id="c-name" class="form-input" placeholder="Your full name" value="{{ user.name if user else '' }}" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" id="c-email" class="form-input" placeholder="you@example.com" value="{{ user.email if user else '' }}" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Subject</label>
+        <input type="text" id="c-subject" class="form-input" placeholder="e.g. Bug report, Feature request…" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Message</label>
+        <textarea id="c-message" class="form-input form-textarea" rows="5" placeholder="Describe your question or feedback in detail…"></textarea>
+      </div>
+      <button class="btn-auth" id="btn-contact">Send Message →</button>
+    </div>
+
+    <div class="contact-info">
+      <div class="ci-card">
+        <div class="ci-icon"></div>
+        <div class="ci-title">Email</div>
+        <div class="ci-val">support@automllab.dev</div>
+      </div>
+      <div class="ci-card">
+        <div class="ci-icon"></div>
+        <div class="ci-title">Project</div>
+        <div class="ci-val">AutoML Laboratory<br>Supervised Learning Platform</div>
+      </div>
+      <div class="ci-card">
+        <div class="ci-icon"></div>
+        <div class="ci-title">Response Time</div>
+        <div class="ci-val">Within 24–48 hours</div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+document.getElementById('btn-contact').addEventListener('click', async () => {
+  const name    = document.getElementById('c-name').value.trim();
+  const email   = document.getElementById('c-email').value.trim();
+  const subject = document.getElementById('c-subject').value.trim();
+  const message = document.getElementById('c-message').value.trim();
+  const errEl   = document.getElementById('contact-error');
+  const sucEl   = document.getElementById('contact-success');
+  errEl.style.display = 'none'; sucEl.style.display = 'none';
+  if (!name || !email || !message) { errEl.textContent = 'Name, email and message are required.'; errEl.style.display = 'block'; return; }
+  const btn = document.getElementById('btn-contact');
+  btn.disabled = true; btn.textContent = 'Sending…';
+  const res  = await fetch('/contact', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({name,email,subject,message}) });
+  const data = await res.json();
+  if (data.success) { sucEl.style.display = 'block'; btn.textContent = '✓ Sent'; document.getElementById('c-message').value = ''; }
+  else { errEl.textContent = data.error || 'Failed to send.'; errEl.style.display = 'block'; btn.disabled = false; btn.textContent = 'Send Message →'; }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}AutoML Laboratory{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+  <div class="noise-overlay"></div>
+
+  <nav class="navbar">
+    <a href="{{ url_for('landing') }}" class="nav-brand"> AutoML<strong>Lab</strong></a>
+    <div class="nav-links">
+      <a href="{{ url_for('about') }}" class="nav-link">About</a>
+      <a href="{{ url_for('contact') }}" class="nav-link">Contact</a>
+      {% if user %}
+        <a href="{{ url_for('dashboard') }}" class="nav-link">Dashboard</a>
+        <a href="{{ url_for('index') }}" class="nav-link">New Run</a>
+        <div class="nav-user">
+          <span class="nav-avatar">{{ user.name[0].upper() }}</span>
+          <span class="nav-name">{{ user.name }}</span>
+          <a href="{{ url_for('logout') }}" class="nav-logout">Logout</a>
+        </div>
+      {% else %}
+        <a href="{{ url_for('login') }}" class="btn-nav-ghost">Login</a>
+        <a href="{{ url_for('signup') }}" class="btn-nav-solid">Sign Up</a>
+      {% endif %}
+    </div>
+  </nav>
+
+  <main>{% block content %}{% endblock %}</main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <span class="footer-brand"> AutoML Laboratory</span>
+      <span class="footer-copy">Supervised Learning Benchmarking Platform · Binary · Multiclass · Regression</span>
+    </div>
+  </footer>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

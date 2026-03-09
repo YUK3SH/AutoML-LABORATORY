@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}AutoML Laboratory — Home{% endblock %}
+{% block content %}
+<section class="hero-landing">
+  <div class="hero-grid-bg"></div>
+  <div class="hero-content">
+    <div class="hero-pill"> Controlled Multi-AutoML Execution</div>
+    <h1 class="hero-h1">Benchmark Every<br><em>AutoML Framework</em><br>Side by Side.</h1>
+    <p class="hero-p">Upload your dataset. Pick your frameworks. Get a standardized metrics report — H2O, AutoGluon, TPOT, FLAML, all on identical 80/20 splits.</p>
+    <div class="hero-cta">
+      {% if user %}
+        <a href="{{ url_for('index') }}" class="btn-primary">Launch New Experiment →</a>
+        <a href="{{ url_for('dashboard') }}" class="btn-ghost">My Dashboard</a>
+      {% else %}
+        <a href="{{ url_for('signup') }}" class="btn-primary">Get Started Free →</a>
+        <a href="{{ url_for('about') }}" class="btn-ghost">Learn More</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="hero-stats">
+    <div class="stat-card"><span class="stat-n">4</span><span class="stat-l">AutoML Frameworks</span></div>
+    <div class="stat-card"><span class="stat-n">8</span><span class="stat-l">Algorithms Tested</span></div>
+    <div class="stat-card"><span class="stat-n">80/20</span><span class="stat-l">Identical Splits</span></div>
+    <div class="stat-card"><span class="stat-n">AI</span><span class="stat-l">Gemini Analysis</span></div>
+  </div>
+</section>
+
+<section class="features-section">
+  <h2 class="section-heading">Everything You Need</h2>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="fc-icon"></div>
+      <h3>Standardized Metrics</h3>
+      <p>Accuracy, F1, Precision, Recall and confusion matrices for every framework on identical data splits.</p>
+    </div>
+    <div class="feature-card">
+      <div class="fc-icon"></div>
+      <h3>4 Frameworks at Once</h3>
+      <p>H2O GBM/RF · AutoGluon LightGBM/CatBoost · TPOT XGBoost/RF · FLAML LightGBM/XGBoost</p>
+    </div>
+    <div class="feature-card">
+      <div class="fc-icon"></div>
+      <h3>Gemini AI Analysis</h3>
+      <p>Get expert ML insights on your results — winner analysis, recommendations, and improvement tips powered by Google Gemini.</p>
+    </div>
+    <div class="feature-card">
+      <div class="fc-icon"></div>
+      <h3>Download Models</h3>
+      <p>Download all trained model artifacts as a ZIP file for deployment in your own pipeline.</p>
+    </div>
+    <div class="feature-card">
+      <div class="fc-icon"></div>
+      <h3>Experiment History</h3>
+      <p>Every run is saved to your personal dashboard. Track accuracy improvements across experiments.</p>
+    </div>
+    <div class="feature-card">
+      <div class="fc-icon"></div>
+      <h3>Secure Accounts</h3>
+      <p>Personal accounts with secure login. Your experiments and results are private to your account.</p>
+    </div>
+  </div>
+</section>
+{% endblock %}

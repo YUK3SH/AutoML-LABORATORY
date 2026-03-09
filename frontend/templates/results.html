@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+{% block title %}Results — AutoML Laboratory{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/results.css') }}" />{% endblock %}
+{% block content %}
+
+{# ── Helper macro: safe metric value ── #}
+{% macro pct(val) %}{{ "%.2f"|format(val * 100) if val is not none else '—' }}{% endmacro %}
+{% macro dec(val, places=4) %}{{ "%.*f"|format(places, val) if val is not none else '—' }}{% endmacro %}
+{% set is_reg = (report.task == 'regression') %}
+
+<main class="results-main">
+
+  {# ── Winner Banner ── #}
+  {% if report.winner %}
+  <section class="winner-section">
+    <div class="winner-eyebrow">Best Performing Model</div>
+    <div class="winner-name">{{ report.winner.best_model }}</div>
+    <div class="winner-stats">
+
+      {% if is_reg %}
+      <div class="winner-stat">
+        <span class="stat-val">{{ dec(report.winner.r2) }}</span>
+        <span class="stat-key">R² Score</span>
+      </div>
+      <div class="winner-stat">
+        <span class="stat-val">{{ dec(report.winner.rmse) }}</span>
+        <span class="stat-key">RMSE</span>
+      </div>
+      <div class="winner-stat">
+        <span class="stat-val">{{ dec(report.winner.mae) }}</span>
+        <span class="stat-key">MAE</span>
+      </div>
+      {% else %}
+      <div class="winner-stat">
+        <span class="stat-val">{{ pct(report.winner.accuracy) }}%</span>
+        <span class="stat-key">Accuracy</span>
+      </div>
+      <div class="winner-stat">
+        <span class="stat-val">{{ pct(report.winner.f1_score) }}%</span>
+        <span class="stat-key">F1 Score</span>
+      </div>
+      {% endif %}
+
+      <div class="winner-stat">
+        <span class="stat-val">{{ report.winner.execution_time_seconds }}s</span>
+        <span class="stat-key">Time</span>
+      </div>
+      <div class="winner-stat">
+        <span class="stat-val">{{ report.winner.framework }}</span>
+        <span class="stat-key">{{ report.task | title | replace('_', ' ') }} · Framework</span>
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  {# ── Comparison Table ── #}
+  <section class="section-block">
+    <h2 class="section-title">Framework Comparison</h2>
+    <div class="table-scroll">
+      <table class="results-table">
+        <thead>
+          <tr>
+            <th>Framework</th>
+            <th>Best Model</th>
+            <th>Algorithms Tested</th>
+            {% if is_reg %}
+            <th>R²</th>
+            <th>RMSE</th>
+            <th>MAE</th>
+            {% else %}
+            <th>Accuracy</th>
+            <th>F1-Score</th>
+            <th>Precision</th>
+            <th>Recall</th>
+            {% endif %}
+            <th>Time (s)</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in report.results %}
+          <tr class="{{ 'winner-row' if report.winner and r.framework == report.winner.framework else '' }}">
+            <td><span class="fw-pill fw-{{ r.framework | lower }}">{{ r.framework }}</span></td>
+            <td class="mono">{{ r.best_model if r.status == 'success' else '—' }}</td>
+
+            {% if r.status == 'success' %}
+            <td class="algo-tested-cell">
+              {% for algo in (r.algorithms_tested or []) %}
+              <span class="algo-tag {{ 'algo-winner' if algo in r.best_model else '' }}">{{ algo }}</span>
+              {% endfor %}
+            </td>
+            {% if is_reg %}
+            <td>{{ dec(r.r2) }}</td>
+            <td>{{ dec(r.rmse) }}</td>
+            <td>{{ dec(r.mae) }}</td>
+            {% else %}
+            <td>
+              <span class="metric-bar-cell">
+                <span class="metric-bar"
+                  style="--bar-width: {{ ((r.accuracy or 0) * 100)|round|int }}% ; width: var(--bar-width);"></span>
+                <span class="metric-val">{{ pct(r.accuracy) }}%</span>
+              </span>
+            </td>
+            <td>{{ pct(r.f1_score) }}%</td>
+            <td>{{ pct(r.precision) }}%</td>
+            <td>{{ pct(r.recall) }}%</td>
+            {% endif %}
+            <td class="mono">{{ r.execution_time_seconds }}</td>
+            <td><span class="badge badge-success"> Success</span></td>
+            {% else %}
+            <td colspan="{{ 6 if is_reg else 7 }}" class="error-cell">{{ r.error }}</td>
+            <td><span class="badge badge-error">✗ Error</span></td>
+            {% endif %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  {# ── Bar Chart ── #}
+  <section class="section-block">
+    <h2 class="section-title">{{ 'R² / RMSE Comparison' if is_reg else 'Accuracy Comparison' }}</h2>
+    <div class="chart-container">
+      <canvas id="accuracy-chart"></canvas>
+    </div>
+  </section>
+
+  {# ── Confusion Matrices (classification only) ── #}
+  {% if not is_reg %}
+  <section class="section-block">
+    <h2 class="section-title">Confusion Matrices</h2>
+    <div class="cm-grid">
+      {% for r in report.results %}
+      {% if r.status == 'success' and r.cm_image %}
+      <div class="cm-card">
+        <div class="cm-title">{{ r.framework }} <span class="cm-model">{{ r.best_model }}</span></div>
+        <img src="/results/{{ r.cm_image }}" alt="{{ r.framework }} Confusion Matrix" class="cm-img" />
+        <div class="cm-acc">Accuracy: {{ pct(r.accuracy) }}%</div>
+      </div>
+      {% endif %}
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {# ── Detailed Result Cards ── #}
+  <section class="section-block">
+    <h2 class="section-title">Detailed Results</h2>
+    <div class="detail-grid">
+      {% for r in report.results %}
+      {% if r.status == 'success' %}
+      <div
+        class="detail-card {{ 'detail-winner' if report.winner and r.framework == report.winner.framework else '' }}">
+        {% if report.winner and r.framework == report.winner.framework %}
+        <div class="winner-ribbon">WINNER</div>
+        {% endif %}
+        <div class="detail-fw fw-{{ r.framework | lower }}">{{ r.framework }}</div>
+        <div class="detail-model">{{ r.best_model }}</div>
+
+        <div class="detail-metrics">
+          {% if is_reg %}
+          <div class="dm-row"><span>R²</span> <strong>{{ dec(r.r2) }}</strong></div>
+          <div class="dm-row"><span>RMSE</span> <strong>{{ dec(r.rmse) }}</strong></div>
+          <div class="dm-row"><span>MAE</span> <strong>{{ dec(r.mae) }}</strong></div>
+          {% else %}
+          <div class="dm-row"><span>Accuracy</span> <strong>{{ dec(r.accuracy) }}</strong></div>
+          <div class="dm-row"><span>F1-Score</span> <strong>{{ dec(r.f1_score) }}</strong></div>
+          <div class="dm-row"><span>Precision</span> <strong>{{ dec(r.precision) }}</strong></div>
+          <div class="dm-row"><span>Recall</span> <strong>{{ dec(r.recall) }}</strong></div>
+          {% endif %}
+          <div class="dm-row"><span>Time</span> <strong>{{ r.execution_time_seconds }}s</strong></div>
+        </div>
+
+        {% if r.algorithm_scores %}
+        <div class="algo-breakdown">
+          <div class="algo-breakdown-title">Algorithm Scores</div>
+          {% for algo, score in r.algorithm_scores.items() %}
+          <div class="algo-score-row">
+            <span class="algo-score-name {{ 'algo-score-winner' if algo in r.best_model else '' }}">
+              {{ ' ' if algo in r.best_model else '' }}{{ algo }}
+            </span>
+            <span class="algo-score-bar-wrap">
+              {# Bar width: for regression R² use score directly; for classification multiply by 100 #}
+              <span class="algo-score-bar"
+                style="--bar-width: {{ [[(score if is_reg else score * 100)|round|int, 0]|max, 100]|min }}% ; width: var(--bar-width);">
+              </span>
+            </span>
+            <span class="algo-score-val">
+              {{ dec(score) if is_reg else "%.1f%%"|format(score * 100) }}
+            </span>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+      {% endfor %}
+    </div>
+  </section>
+
+</main>
+
+{# ── Actions ── #}
+<section class="section-block">
+  <h2 class="section-title">Actions</h2>
+  <div class="actions-row">
+    <a href="/download/models" class="btn-action btn-download">Download Models (.zip)</a>
+    <a href="/download/report" class="btn-action btn-download-report">Download Report (.json)</a>
+    <button class="btn-action btn-gemini" id="btn-gemini" onclick="runGeminiAnalysis()">
+      Analyze with Gemini AI
+    </button>
+  </div>
+</section>
+
+{# ── Gemini Analysis Output ── #}
+<section class="section-block" id="gemini-section" style="display:none">
+  <h2 class="section-title">Gemini AI Analysis</h2>
+  <div class="gemini-card" id="gemini-output">
+    <div class="gemini-loading" id="gemini-loading">
+      <span class="gemini-spinner"></span> Analyzing results with Gemini…
+    </div>
+    <div id="gemini-text" style="display:none"></div>
+  </div>
+</section>
+
+{% endblock %}
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='js/results.js') }}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+<script id="report-data" type="application/json">
+    {{ report | tojson | safe }}
+  </script>
+<script>
+  const REPORT = JSON.parse(document.getElementById('report-data').textContent);
+  renderAccuracyChart(REPORT);
+
+  async function runGeminiAnalysis() {
+    const sec = document.getElementById('gemini-section');
+    const btn = document.getElementById('btn-gemini');
+    const load = document.getElementById('gemini-loading');
+    const txt = document.getElementById('gemini-text');
+    sec.style.display = 'block';
+    btn.disabled = true; btn.textContent = 'Analyzing…';
+    load.style.display = 'flex'; txt.style.display = 'none';
+    sec.scrollIntoView({ behavior: 'smooth' });
+    try {
+      const res = await fetch('/analyze/gemini', { method: 'POST' });
+      const data = await res.json();
+      load.style.display = 'none';
+      txt.style.display = 'block';
+      if (data.analysis) {
+        txt.innerHTML = marked.parse(data.analysis);
+        btn.textContent = ' Analysis Complete';
+      } else {
+        txt.innerHTML = '<div class="gemini-error"> ' + (data.error || 'Analysis failed.')
+          + '<br><small>Set GEMINI_API_KEY environment variable to enable AI analysis.</small></div>';
+        btn.disabled = false; btn.textContent = 'Retry Gemini Analysis';
+      }
+    } catch (e) {
+      load.style.display = 'none';
+      txt.style.display = 'block';
+      txt.innerHTML = '<div class="gemini-error">⚠ Network error: ' + e.message + '</div>';
+      btn.disabled = false; btn.textContent = 'Retry Gemini Analysis';
+    }
+  }
+</script>
+{% endblock %}
