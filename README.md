@@ -1,13 +1,3 @@
----
-title: AutoML-Laboratory
-emoji: 🧪
-colorFrom: blue
-colorTo: purple
-sdk: docker
-app_port: 7860
-pinned: false
----
-
 # AutoML Laboratory
 
 [![Python Version](https://img.shields.io/badge/python-3.10%20%7C%203.11-blue.svg)](https://www.python.org/)
@@ -16,7 +6,7 @@ pinned: false
 
 **AutoML Laboratory** is a comprehensive supervised learning benchmarking platform designed to automate the machine learning pipeline. It allows users to upload datasets, automatically detect task types, and benchmark multiple state-of-the-art AutoML frameworks simultaneously to find the best performing model.
 
-### 🚀 [Live Demo on Hugging Face Spaces](https://huggingface.co/spaces/Yukesh46/AutoML-LAB)
+Try ↦ https://yukesh46-automl-lab.hf.space/
 
 ---
 
